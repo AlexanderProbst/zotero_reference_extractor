@@ -122,3 +122,9 @@ The desktop app dynamically imports the built core library from `dist/index.js`.
 - sandbox: true
 - Minimal preload API via contextBridge
 - IPC payloads validated with zod
+
+## Windows Development Notes
+
+- **Never create files with Windows reserved names**: `nul`, `con`, `prn`, `aux`, `com1`-`com9`, `lpt1`-`lpt9` (case insensitive). These cause Git failures on Windows.
+- Use PowerShell semicolon `;` instead of `&&` for chaining commands, or run commands separately.
+- The `apps/desktop/run-electron.bat` script is needed for dev mode on Windows with Git Bash (clears `ELECTRON_RUN_AS_NODE` environment variable).
