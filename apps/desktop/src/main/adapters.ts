@@ -6,9 +6,24 @@ import {
   OutputFormat,
 } from './types';
 
-// Resolve path to the core library's built output
-// From apps/desktop/dist-electron/ -> apps/desktop/ -> apps/ -> root/dist/
-const coreLibPath = join(__dirname, '..', '..', '..', 'dist', 'index.js');
+/**
+ * Resolve path to the core library's built output
+ * - In dev: from apps/desktop/dist-electron/ -> root/dist/
+ * - In production: from resources/core/ (copied by electron-builder)
+ */
+function getCoreLibPath(): string {
+  // Check if we're in a packaged app (asar archive)
+  const isPackaged = __dirname.includes('app.asar');
+
+  if (isPackaged) {
+    // In production, core lib is in resources/core/
+    // process.resourcesPath points to the resources directory
+    return join(process.resourcesPath, 'core', 'index.js');
+  } else {
+    // In dev mode, go up from apps/desktop/dist-electron/ to root/dist/
+    return join(__dirname, '..', '..', '..', 'dist', 'index.js');
+  }
+}
 
 // Lazy-loaded core library
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -22,7 +37,8 @@ let coreLib: any = null;
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 async function loadCoreLib(): Promise<any> {
   if (!coreLib) {
-    const pathUrl = `file://${coreLibPath.replace(/\\/g, '/')}`;
+    const libPath = getCoreLibPath();
+    const pathUrl = `file://${libPath.replace(/\\/g, '/')}`;
     // Use Function constructor to get real import() that TypeScript won't transform
     // eslint-disable-next-line @typescript-eslint/no-implied-eval
     const dynamicImport = new Function('specifier', 'return import(specifier)');

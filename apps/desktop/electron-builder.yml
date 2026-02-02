@@ -11,6 +11,13 @@ files:
   - dist-electron/**/*
   - "!**/*.map"
 
+extraResources:
+  - from: "../../dist"
+    to: "core"
+    filter:
+      - "**/*"
+      - "!**/*.map"
+
 extraMetadata:
   main: dist-electron/main.js
 
