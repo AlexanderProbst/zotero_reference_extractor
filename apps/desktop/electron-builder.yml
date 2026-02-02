@@ -1,0 +1,41 @@
+appId: com.zoterorefextractor.app
+productName: Zotero Ref Extractor
+copyright: Copyright (c) 2024
+
+directories:
+  output: release
+  buildResources: build
+
+files:
+  - dist/**/*
+  - dist-electron/**/*
+  - "!**/*.map"
+
+extraMetadata:
+  main: dist-electron/main.js
+
+mac:
+  category: public.app-category.productivity
+  target:
+    - dmg
+    - zip
+  artifactName: "${productName}-${version}-${os}-${arch}.${ext}"
+
+win:
+  target:
+    - nsis
+  artifactName: "${productName}-${version}-${os}.${ext}"
+
+nsis:
+  oneClick: false
+  allowToChangeInstallationDirectory: true
+  createDesktopShortcut: true
+  createStartMenuShortcut: true
+
+linux:
+  category: Office
+  target:
+    - AppImage
+  artifactName: "${productName}-${version}-${os}-${arch}.${ext}"
+
+publish: null
