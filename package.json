@@ -1,0 +1,58 @@
+{
+  "name": "zotero-ref-extract",
+  "version": "1.0.0",
+  "description": "Extract bibliographic references from Word documents (Zotero/Mendeley) and PDFs (via GROBID)",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "bin": {
+    "zotero-ref-extract": "dist/cli.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsx src/cli.ts",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "lint": "eslint src --ext .ts",
+    "typecheck": "tsc --noEmit",
+    "clean": "rimraf dist",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": [
+    "zotero",
+    "mendeley",
+    "references",
+    "bibliography",
+    "csl-json",
+    "bibtex",
+    "biblatex",
+    "ris",
+    "docx",
+    "grobid"
+  ],
+  "author": "",
+  "license": "MIT",
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "files": [
+    "dist"
+  ],
+  "dependencies": {
+    "citation-js": "^0.7.14",
+    "fast-xml-parser": "^4.4.1",
+    "undici": "^6.19.8",
+    "yauzl-promise": "^4.0.0",
+    "yargs": "^17.7.2",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@types/node": "^20.14.15",
+    "@types/yargs": "^17.0.33",
+    "rimraf": "^6.0.1",
+    "tsx": "^4.17.0",
+    "typescript": "^5.5.4",
+    "vitest": "^2.0.5"
+  }
+}
