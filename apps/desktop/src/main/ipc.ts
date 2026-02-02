@@ -1,6 +1,6 @@
 import { ipcMain, dialog, BrowserWindow } from 'electron';
 import { writeFile } from 'node:fs/promises';
-import { basename, extname } from 'node:path';
+import { extname } from 'node:path';
 import {
   IPC_CHANNELS,
   ExtractRequestSchema,
@@ -8,8 +8,8 @@ import {
   ExtractResponse,
   SaveDialogRequest,
   SaveDialogResult,
-} from './types.js';
-import { runExtraction } from './adapters.js';
+} from './types';
+import { runExtraction } from './adapters';
 
 /**
  * Send a log message to the renderer

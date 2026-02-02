@@ -1,12 +1,65 @@
 import { contextBridge, ipcRenderer } from 'electron';
-import {
-  IPC_CHANNELS,
-  ExtractRequest,
-  ExtractResponse,
-  SaveDialogRequest,
-  SaveDialogResult,
-  PreloadAPI,
-} from './types.js';
+
+// IPC channel names - inlined because sandbox mode can't require local files
+const IPC_CHANNELS = {
+  EXTRACT_RUN: 'extract:run',
+  SAVE_DIALOG: 'save:dialog',
+  OPEN_FILE_DIALOG: 'dialog:openFiles',
+  LOG_MESSAGE: 'log:message',
+} as const;
+
+// Type definitions (TypeScript only - erased at runtime)
+// These mirror types.ts but don't require zod
+type OutputFormat = 'csl' | 'biblatex' | 'bibtex' | 'ris';
+type LogLevel = 'silent' | 'info' | 'debug';
+
+interface ExtractRequest {
+  files: string[];
+  format: OutputFormat;
+  grobidUrl?: string;
+  minify?: boolean;
+  failOnEmpty?: boolean;
+  logLevel?: LogLevel;
+}
+
+interface ExtractSummary {
+  totalInputs: number;
+  totalItems: number;
+  dedupedItems: number;
+  warnings: string[];
+}
+
+interface ExtractResult {
+  success: true;
+  summary: ExtractSummary;
+  output: string;
+  outputSuggestedName: string;
+}
+
+interface ExtractError {
+  success: false;
+  error: string;
+  details?: string;
+}
+
+type ExtractResponse = ExtractResult | ExtractError;
+
+interface SaveDialogRequest {
+  defaultFileName: string;
+  data: string;
+}
+
+interface SaveDialogResult {
+  filePath: string | null;
+  error?: string;
+}
+
+interface PreloadAPI {
+  extract: (payload: ExtractRequest) => Promise<ExtractResponse>;
+  saveDialog: (request: SaveDialogRequest) => Promise<SaveDialogResult>;
+  openFileDialog: () => Promise<string[]>;
+  onLog: (callback: (message: string) => void) => () => void;
+}
 
 /**
  * Exposed API for the renderer process

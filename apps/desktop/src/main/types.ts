@@ -72,15 +72,8 @@ export interface SaveDialogResult {
   error?: string;
 }
 
-/**
- * IPC channel names
- */
-export const IPC_CHANNELS = {
-  EXTRACT_RUN: 'extract:run',
-  SAVE_DIALOG: 'save:dialog',
-  OPEN_FILE_DIALOG: 'dialog:openFiles',
-  LOG_MESSAGE: 'log:message',
-} as const;
+// Re-export IPC_CHANNELS from the dependency-free module
+export { IPC_CHANNELS } from './ipc-channels';
 
 /**
  * Preload API exposed to renderer via contextBridge

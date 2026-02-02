@@ -1,18 +1,14 @@
-import { basename, extname, join, dirname } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { basename, extname, join } from 'node:path';
 import {
   ExtractRequest,
   ExtractResult,
   ExtractSummary,
   OutputFormat,
-} from './types.js';
-
-// Get the directory of this file
-const __dirname = dirname(fileURLToPath(import.meta.url));
+} from './types';
 
 // Resolve path to the core library's built output
-// From apps/desktop/dist-electron/ -> apps/desktop/ -> apps/ -> root/ -> dist/
-const coreLibPath = join(__dirname, '..', '..', '..', '..', 'dist', 'index.js');
+// From apps/desktop/dist-electron/ -> apps/desktop/ -> apps/ -> root/dist/
+const coreLibPath = join(__dirname, '..', '..', '..', 'dist', 'index.js');
 
 // Lazy-loaded core library
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -20,12 +16,17 @@ let coreLib: any = null;
 
 /**
  * Load the core library dynamically
+ * Uses dynamic import() for ESM modules - the Function trick prevents
+ * TypeScript from transforming import() to require()
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 async function loadCoreLib(): Promise<any> {
   if (!coreLib) {
     const pathUrl = `file://${coreLibPath.replace(/\\/g, '/')}`;
-    coreLib = await import(pathUrl);
+    // Use Function constructor to get real import() that TypeScript won't transform
+    // eslint-disable-next-line @typescript-eslint/no-implied-eval
+    const dynamicImport = new Function('specifier', 'return import(specifier)');
+    coreLib = await dynamicImport(pathUrl);
   }
   return coreLib;
 }

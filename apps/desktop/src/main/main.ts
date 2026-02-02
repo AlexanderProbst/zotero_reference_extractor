@@ -1,14 +1,18 @@
-import { app, BrowserWindow, nativeTheme } from 'electron';
+import type { App, BrowserWindow as BW, NativeTheme, WebContents } from 'electron';
 import { join } from 'node:path';
-import { fileURLToPath } from 'node:url';
-import { registerIpcHandlers } from './ipc.js';
+import { registerIpcHandlers } from './ipc';
 
-const __dirname = fileURLToPath(new URL('.', import.meta.url));
+// Use require for Electron to work around ESM interop issues
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const electron = require('electron');
+const app: App = electron.app;
+const BrowserWindow: typeof BW = electron.BrowserWindow;
+const nativeTheme: NativeTheme = electron.nativeTheme;
 
 // Determine if we're in development mode
 const isDev = !app.isPackaged;
 
-let mainWindow: BrowserWindow | null = null;
+let mainWindow: BW | null = null;
 
 /**
  * Create the main application window
@@ -68,7 +72,7 @@ app.on('window-all-closed', () => {
 });
 
 // Security: Prevent new window creation
-app.on('web-contents-created', (_, contents) => {
+app.on('web-contents-created', (_event: Electron.Event, contents: WebContents) => {
   contents.setWindowOpenHandler(() => {
     return { action: 'deny' };
   });
