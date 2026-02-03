@@ -1725,6 +1725,1967 @@ var require_fxp = __commonJS({
   }
 });
 
+// node_modules/object-keys/isArguments.js
+var require_isArguments = __commonJS({
+  "node_modules/object-keys/isArguments.js"(exports, module) {
+    "use strict";
+    var toStr = Object.prototype.toString;
+    module.exports = function isArguments(value) {
+      var str = toStr.call(value);
+      var isArgs = str === "[object Arguments]";
+      if (!isArgs) {
+        isArgs = str !== "[object Array]" && value !== null && typeof value === "object" && typeof value.length === "number" && value.length >= 0 && toStr.call(value.callee) === "[object Function]";
+      }
+      return isArgs;
+    };
+  }
+});
+
+// node_modules/object-keys/implementation.js
+var require_implementation = __commonJS({
+  "node_modules/object-keys/implementation.js"(exports, module) {
+    "use strict";
+    var keysShim;
+    if (!Object.keys) {
+      has = Object.prototype.hasOwnProperty;
+      toStr = Object.prototype.toString;
+      isArgs = require_isArguments();
+      isEnumerable = Object.prototype.propertyIsEnumerable;
+      hasDontEnumBug = !isEnumerable.call({ toString: null }, "toString");
+      hasProtoEnumBug = isEnumerable.call(function() {
+      }, "prototype");
+      dontEnums = [
+        "toString",
+        "toLocaleString",
+        "valueOf",
+        "hasOwnProperty",
+        "isPrototypeOf",
+        "propertyIsEnumerable",
+        "constructor"
+      ];
+      equalsConstructorPrototype = function(o) {
+        var ctor = o.constructor;
+        return ctor && ctor.prototype === o;
+      };
+      excludedKeys = {
+        $applicationCache: true,
+        $console: true,
+        $external: true,
+        $frame: true,
+        $frameElement: true,
+        $frames: true,
+        $innerHeight: true,
+        $innerWidth: true,
+        $onmozfullscreenchange: true,
+        $onmozfullscreenerror: true,
+        $outerHeight: true,
+        $outerWidth: true,
+        $pageXOffset: true,
+        $pageYOffset: true,
+        $parent: true,
+        $scrollLeft: true,
+        $scrollTop: true,
+        $scrollX: true,
+        $scrollY: true,
+        $self: true,
+        $webkitIndexedDB: true,
+        $webkitStorageInfo: true,
+        $window: true
+      };
+      hasAutomationEqualityBug = (function() {
+        if (typeof window === "undefined") {
+          return false;
+        }
+        for (var k in window) {
+          try {
+            if (!excludedKeys["$" + k] && has.call(window, k) && window[k] !== null && typeof window[k] === "object") {
+              try {
+                equalsConstructorPrototype(window[k]);
+              } catch (e) {
+                return true;
+              }
+            }
+          } catch (e) {
+            return true;
+          }
+        }
+        return false;
+      })();
+      equalsConstructorPrototypeIfNotBuggy = function(o) {
+        if (typeof window === "undefined" || !hasAutomationEqualityBug) {
+          return equalsConstructorPrototype(o);
+        }
+        try {
+          return equalsConstructorPrototype(o);
+        } catch (e) {
+          return false;
+        }
+      };
+      keysShim = function keys(object) {
+        var isObject = object !== null && typeof object === "object";
+        var isFunction = toStr.call(object) === "[object Function]";
+        var isArguments = isArgs(object);
+        var isString = isObject && toStr.call(object) === "[object String]";
+        var theKeys = [];
+        if (!isObject && !isFunction && !isArguments) {
+          throw new TypeError("Object.keys called on a non-object");
+        }
+        var skipProto = hasProtoEnumBug && isFunction;
+        if (isString && object.length > 0 && !has.call(object, 0)) {
+          for (var i = 0; i < object.length; ++i) {
+            theKeys.push(String(i));
+          }
+        }
+        if (isArguments && object.length > 0) {
+          for (var j = 0; j < object.length; ++j) {
+            theKeys.push(String(j));
+          }
+        } else {
+          for (var name in object) {
+            if (!(skipProto && name === "prototype") && has.call(object, name)) {
+              theKeys.push(String(name));
+            }
+          }
+        }
+        if (hasDontEnumBug) {
+          var skipConstructor = equalsConstructorPrototypeIfNotBuggy(object);
+          for (var k = 0; k < dontEnums.length; ++k) {
+            if (!(skipConstructor && dontEnums[k] === "constructor") && has.call(object, dontEnums[k])) {
+              theKeys.push(dontEnums[k]);
+            }
+          }
+        }
+        return theKeys;
+      };
+    }
+    var has;
+    var toStr;
+    var isArgs;
+    var isEnumerable;
+    var hasDontEnumBug;
+    var hasProtoEnumBug;
+    var dontEnums;
+    var equalsConstructorPrototype;
+    var excludedKeys;
+    var hasAutomationEqualityBug;
+    var equalsConstructorPrototypeIfNotBuggy;
+    module.exports = keysShim;
+  }
+});
+
+// node_modules/object-keys/index.js
+var require_object_keys = __commonJS({
+  "node_modules/object-keys/index.js"(exports, module) {
+    "use strict";
+    var slice = Array.prototype.slice;
+    var isArgs = require_isArguments();
+    var origKeys = Object.keys;
+    var keysShim = origKeys ? function keys(o) {
+      return origKeys(o);
+    } : require_implementation();
+    var originalKeys = Object.keys;
+    keysShim.shim = function shimObjectKeys() {
+      if (Object.keys) {
+        var keysWorksWithArguments = (function() {
+          var args = Object.keys(arguments);
+          return args && args.length === arguments.length;
+        })(1, 2);
+        if (!keysWorksWithArguments) {
+          Object.keys = function keys(object) {
+            if (isArgs(object)) {
+              return originalKeys(slice.call(object));
+            }
+            return originalKeys(object);
+          };
+        }
+      } else {
+        Object.keys = keysShim;
+      }
+      return Object.keys || keysShim;
+    };
+    module.exports = keysShim;
+  }
+});
+
+// node_modules/es-define-property/index.js
+var require_es_define_property = __commonJS({
+  "node_modules/es-define-property/index.js"(exports, module) {
+    "use strict";
+    var $defineProperty = Object.defineProperty || false;
+    if ($defineProperty) {
+      try {
+        $defineProperty({}, "a", { value: 1 });
+      } catch (e) {
+        $defineProperty = false;
+      }
+    }
+    module.exports = $defineProperty;
+  }
+});
+
+// node_modules/es-errors/syntax.js
+var require_syntax = __commonJS({
+  "node_modules/es-errors/syntax.js"(exports, module) {
+    "use strict";
+    module.exports = SyntaxError;
+  }
+});
+
+// node_modules/es-errors/type.js
+var require_type = __commonJS({
+  "node_modules/es-errors/type.js"(exports, module) {
+    "use strict";
+    module.exports = TypeError;
+  }
+});
+
+// node_modules/gopd/gOPD.js
+var require_gOPD = __commonJS({
+  "node_modules/gopd/gOPD.js"(exports, module) {
+    "use strict";
+    module.exports = Object.getOwnPropertyDescriptor;
+  }
+});
+
+// node_modules/gopd/index.js
+var require_gopd = __commonJS({
+  "node_modules/gopd/index.js"(exports, module) {
+    "use strict";
+    var $gOPD = require_gOPD();
+    if ($gOPD) {
+      try {
+        $gOPD([], "length");
+      } catch (e) {
+        $gOPD = null;
+      }
+    }
+    module.exports = $gOPD;
+  }
+});
+
+// node_modules/define-data-property/index.js
+var require_define_data_property = __commonJS({
+  "node_modules/define-data-property/index.js"(exports, module) {
+    "use strict";
+    var $defineProperty = require_es_define_property();
+    var $SyntaxError = require_syntax();
+    var $TypeError = require_type();
+    var gopd = require_gopd();
+    module.exports = function defineDataProperty(obj, property, value) {
+      if (!obj || typeof obj !== "object" && typeof obj !== "function") {
+        throw new $TypeError("`obj` must be an object or a function`");
+      }
+      if (typeof property !== "string" && typeof property !== "symbol") {
+        throw new $TypeError("`property` must be a string or a symbol`");
+      }
+      if (arguments.length > 3 && typeof arguments[3] !== "boolean" && arguments[3] !== null) {
+        throw new $TypeError("`nonEnumerable`, if provided, must be a boolean or null");
+      }
+      if (arguments.length > 4 && typeof arguments[4] !== "boolean" && arguments[4] !== null) {
+        throw new $TypeError("`nonWritable`, if provided, must be a boolean or null");
+      }
+      if (arguments.length > 5 && typeof arguments[5] !== "boolean" && arguments[5] !== null) {
+        throw new $TypeError("`nonConfigurable`, if provided, must be a boolean or null");
+      }
+      if (arguments.length > 6 && typeof arguments[6] !== "boolean") {
+        throw new $TypeError("`loose`, if provided, must be a boolean");
+      }
+      var nonEnumerable = arguments.length > 3 ? arguments[3] : null;
+      var nonWritable = arguments.length > 4 ? arguments[4] : null;
+      var nonConfigurable = arguments.length > 5 ? arguments[5] : null;
+      var loose = arguments.length > 6 ? arguments[6] : false;
+      var desc = !!gopd && gopd(obj, property);
+      if ($defineProperty) {
+        $defineProperty(obj, property, {
+          configurable: nonConfigurable === null && desc ? desc.configurable : !nonConfigurable,
+          enumerable: nonEnumerable === null && desc ? desc.enumerable : !nonEnumerable,
+          value,
+          writable: nonWritable === null && desc ? desc.writable : !nonWritable
+        });
+      } else if (loose || !nonEnumerable && !nonWritable && !nonConfigurable) {
+        obj[property] = value;
+      } else {
+        throw new $SyntaxError("This environment does not support defining a property as non-configurable, non-writable, or non-enumerable.");
+      }
+    };
+  }
+});
+
+// node_modules/has-property-descriptors/index.js
+var require_has_property_descriptors = __commonJS({
+  "node_modules/has-property-descriptors/index.js"(exports, module) {
+    "use strict";
+    var $defineProperty = require_es_define_property();
+    var hasPropertyDescriptors = function hasPropertyDescriptors2() {
+      return !!$defineProperty;
+    };
+    hasPropertyDescriptors.hasArrayLengthDefineBug = function hasArrayLengthDefineBug() {
+      if (!$defineProperty) {
+        return null;
+      }
+      try {
+        return $defineProperty([], "length", { value: 1 }).length !== 1;
+      } catch (e) {
+        return true;
+      }
+    };
+    module.exports = hasPropertyDescriptors;
+  }
+});
+
+// node_modules/define-properties/index.js
+var require_define_properties = __commonJS({
+  "node_modules/define-properties/index.js"(exports, module) {
+    "use strict";
+    var keys = require_object_keys();
+    var hasSymbols = typeof Symbol === "function" && typeof /* @__PURE__ */ Symbol("foo") === "symbol";
+    var toStr = Object.prototype.toString;
+    var concat = Array.prototype.concat;
+    var defineDataProperty = require_define_data_property();
+    var isFunction = function(fn) {
+      return typeof fn === "function" && toStr.call(fn) === "[object Function]";
+    };
+    var supportsDescriptors = require_has_property_descriptors()();
+    var defineProperty = function(object, name, value, predicate) {
+      if (name in object) {
+        if (predicate === true) {
+          if (object[name] === value) {
+            return;
+          }
+        } else if (!isFunction(predicate) || !predicate()) {
+          return;
+        }
+      }
+      if (supportsDescriptors) {
+        defineDataProperty(object, name, value, true);
+      } else {
+        defineDataProperty(object, name, value);
+      }
+    };
+    var defineProperties = function(object, map) {
+      var predicates = arguments.length > 2 ? arguments[2] : {};
+      var props = keys(map);
+      if (hasSymbols) {
+        props = concat.call(props, Object.getOwnPropertySymbols(map));
+      }
+      for (var i = 0; i < props.length; i += 1) {
+        defineProperty(object, props[i], map[props[i]], predicates[props[i]]);
+      }
+    };
+    defineProperties.supportsDescriptors = !!supportsDescriptors;
+    module.exports = defineProperties;
+  }
+});
+
+// node_modules/globalthis/implementation.js
+var require_implementation2 = __commonJS({
+  "node_modules/globalthis/implementation.js"(exports, module) {
+    "use strict";
+    module.exports = global;
+  }
+});
+
+// node_modules/globalthis/polyfill.js
+var require_polyfill = __commonJS({
+  "node_modules/globalthis/polyfill.js"(exports, module) {
+    "use strict";
+    var implementation = require_implementation2();
+    module.exports = function getPolyfill() {
+      if (typeof global !== "object" || !global || global.Math !== Math || global.Array !== Array) {
+        return implementation;
+      }
+      return global;
+    };
+  }
+});
+
+// node_modules/globalthis/shim.js
+var require_shim = __commonJS({
+  "node_modules/globalthis/shim.js"(exports, module) {
+    "use strict";
+    var define2 = require_define_properties();
+    var gOPD = require_gopd();
+    var getPolyfill = require_polyfill();
+    module.exports = function shimGlobal() {
+      var polyfill = getPolyfill();
+      if (define2.supportsDescriptors) {
+        var descriptor = gOPD(polyfill, "globalThis");
+        if (!descriptor || descriptor.configurable && (descriptor.enumerable || !descriptor.writable || globalThis !== polyfill)) {
+          Object.defineProperty(polyfill, "globalThis", {
+            configurable: true,
+            enumerable: false,
+            value: polyfill,
+            writable: true
+          });
+        }
+      } else if (typeof globalThis !== "object" || globalThis !== polyfill) {
+        polyfill.globalThis = polyfill;
+      }
+      return polyfill;
+    };
+  }
+});
+
+// node_modules/globalthis/index.js
+var require_globalthis = __commonJS({
+  "node_modules/globalthis/index.js"(exports, module) {
+    "use strict";
+    var defineProperties = require_define_properties();
+    var implementation = require_implementation2();
+    var getPolyfill = require_polyfill();
+    var shim = require_shim();
+    var polyfill = getPolyfill();
+    var getGlobal = function() {
+      return polyfill;
+    };
+    defineProperties(getGlobal, {
+      getPolyfill,
+      implementation,
+      shim
+    });
+    module.exports = getGlobal;
+  }
+});
+
+// node_modules/is-it-type/dist/cjs/is-it-type.js
+var require_is_it_type = __commonJS({
+  "node_modules/is-it-type/dist/cjs/is-it-type.js"(exports) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    var getGlobalThis = require_globalthis();
+    function _interopDefaultLegacy(e) {
+      return e && typeof e === "object" && "default" in e ? e : { "default": e };
+    }
+    var getGlobalThis__default = /* @__PURE__ */ _interopDefaultLegacy(getGlobalThis);
+    var isArray = Array.isArray;
+    function isBoolean(arg) {
+      return isType("boolean", arg);
+    }
+    function isNull(arg) {
+      return arg === null;
+    }
+    function isUndefined(arg) {
+      return arg === void 0;
+    }
+    function isNullOrUndefined(arg) {
+      return arg == null;
+    }
+    function isNumber(arg) {
+      return isType("number", arg);
+    }
+    function isString(arg) {
+      return isType("string", arg);
+    }
+    function isSymbol(arg) {
+      return isType("symbol", arg);
+    }
+    function isRegExp(arg) {
+      return arg instanceof RegExp;
+    }
+    function isDate(arg) {
+      return arg instanceof Date;
+    }
+    function isError(arg) {
+      return arg instanceof Error;
+    }
+    function isFunction(arg) {
+      return isType("function", arg);
+    }
+    function isPrimitive(arg) {
+      var type = getType(arg);
+      return arg == null || type === "boolean" || type === "number" || type === "string" || type === "symbol";
+    }
+    function isEmptyString(arg) {
+      return arg === "";
+    }
+    function isFullString(arg) {
+      return isString(arg) && !isEmptyString(arg);
+    }
+    var getPrototypeOf = Object.getPrototypeOf;
+    var ObjectPrototype = Object.prototype;
+    var globalThis2 = getGlobalThis__default["default"]();
+    function isObject(arg) {
+      if (!isType("object", arg) || isNull(arg)) return false;
+      var proto = getPrototypeOf(arg);
+      if (proto === null || proto === ObjectPrototype) return true;
+      while (true) {
+        var nextProto = getPrototypeOf(proto);
+        if (nextProto === null) return true;
+        if (nextProto === ObjectPrototype) break;
+        proto = nextProto;
+      }
+      return isNotNativeProto(proto);
+    }
+    function isNotNativeProto(proto) {
+      var nativeProtos = [];
+      for (var _i = 0, _arr = ["Function", "Array", "Number", "Boolean", "String", "Symbol", "Date", "Promise", "RegExp", "Error", "ArrayBuffer", "DataView", "Map", "BigInt", "Set", "WeakMap", "WeakSet", "SharedArrayBuffer", "FinalizationRegistry", "WeakRef", "URL", "URLSearchParams", "TextEncoder", "TextDecoder"]; _i < _arr.length; _i++) {
+        var ctorName = _arr[_i];
+        var ctor = globalThis2[ctorName];
+        if (ctor) nativeProtos.push(ctor.prototype);
+      }
+      if (typeof Uint8Array === "function") nativeProtos.push(getPrototypeOf(Uint8Array.prototype));
+      if (typeof Set === "function") {
+        nativeProtos = new Set(nativeProtos);
+        isNotNativeProto = function isNotNativeProto2(p) {
+          return !nativeProtos.has(p);
+        };
+      } else {
+        isNotNativeProto = function isNotNativeProto2(p) {
+          return !nativeProtos.includes(p);
+        };
+      }
+      return isNotNativeProto(proto);
+    }
+    function isEmptyObject(arg) {
+      return isObject(arg) && Object.keys(arg).length === 0;
+    }
+    function isInteger(arg) {
+      return Number.isInteger(arg);
+    }
+    function isPositiveInteger(arg) {
+      return isInteger(arg) && arg > 0;
+    }
+    function isPositiveIntegerOrZero(arg) {
+      return isInteger(arg) && arg >= 0;
+    }
+    function isNegativeInteger(arg) {
+      return isInteger(arg) && arg < 0;
+    }
+    function isNegativeIntegerOrZero(arg) {
+      return isInteger(arg) && arg <= 0;
+    }
+    function isType(type, arg) {
+      return getType(arg) === type;
+    }
+    function getType(arg) {
+      return typeof arg;
+    }
+    exports.isArray = isArray;
+    exports.isBoolean = isBoolean;
+    exports.isDate = isDate;
+    exports.isEmptyObject = isEmptyObject;
+    exports.isEmptyString = isEmptyString;
+    exports.isError = isError;
+    exports.isFullString = isFullString;
+    exports.isFunction = isFunction;
+    exports.isInteger = isInteger;
+    exports.isNegativeInteger = isNegativeInteger;
+    exports.isNegativeIntegerOrZero = isNegativeIntegerOrZero;
+    exports.isNull = isNull;
+    exports.isNullOrUndefined = isNullOrUndefined;
+    exports.isNumber = isNumber;
+    exports.isObject = isObject;
+    exports.isPositiveInteger = isPositiveInteger;
+    exports.isPositiveIntegerOrZero = isPositiveIntegerOrZero;
+    exports.isPrimitive = isPrimitive;
+    exports.isRegExp = isRegExp;
+    exports.isString = isString;
+    exports.isSymbol = isSymbol;
+    exports.isType = isType;
+    exports.isUndefined = isUndefined;
+  }
+});
+
+// node_modules/is-it-type/index.js
+var require_is_it_type2 = __commonJS({
+  "node_modules/is-it-type/index.js"(exports, module) {
+    "use strict";
+    module.exports = require_is_it_type();
+  }
+});
+
+// node_modules/simple-invariant/index.js
+var require_simple_invariant = __commonJS({
+  "node_modules/simple-invariant/index.js"(exports, module) {
+    "use strict";
+    var DEFAULT_MESSAGE = "Invariant failed";
+    module.exports = function invariant(condition, message) {
+      if (!condition) {
+        const err = new Error(message || DEFAULT_MESSAGE);
+        Error.captureStackTrace(err, invariant);
+        throw err;
+      }
+    };
+  }
+});
+
+// node_modules/yauzl-promise/lib/shared.js
+var require_shared = __commonJS({
+  "node_modules/yauzl-promise/lib/shared.js"(exports, module) {
+    "use strict";
+    var INTERNAL_SYMBOL = {};
+    var uncertainUncompressedSizeEntriesRegistry = new FinalizationRegistry(
+      ({ zip, ref }) => zip._uncertainUncompressedSizeEntryRefs?.delete(ref)
+    );
+    module.exports = { INTERNAL_SYMBOL, uncertainUncompressedSizeEntriesRegistry };
+  }
+});
+
+// node_modules/yauzl-promise/lib/utils.js
+var require_utils = __commonJS({
+  "node_modules/yauzl-promise/lib/utils.js"(exports, module) {
+    "use strict";
+    var { Writable: WritableStream, promises: { pipeline } } = __require("stream");
+    var assert = require_simple_invariant();
+    module.exports = { decodeBuffer, validateFilename, dosDateTimeToDate, readUInt64LE, streamToBuffer };
+    function decodeBuffer(buffer, start, isUtf8) {
+      if (isUtf8) return buffer.toString("utf8", start);
+      let str = "";
+      for (let i = start; i < buffer.length; i++) {
+        str += CP437_CHARS[buffer[i]];
+      }
+      return str;
+    }
+    var CP437_CHARS = "\0\u263A\u263B\u2665\u2666\u2663\u2660\u2022\u25D8\u25CB\u25D9\u2642\u2640\u266A\u266B\u263C\u25BA\u25C4\u2195\u203C\xB6\xA7\u25AC\u21A8\u2191\u2193\u2192\u2190\u221F\u2194\u25B2\u25BC !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~\u2302\xC7\xFC\xE9\xE2\xE4\xE0\xE5\xE7\xEA\xEB\xE8\xEF\xEE\xEC\xC4\xC5\xC9\xE6\xC6\xF4\xF6\xF2\xFB\xF9\xFF\xD6\xDC\xA2\xA3\xA5\u20A7\u0192\xE1\xED\xF3\xFA\xF1\xD1\xAA\xBA\xBF\u2310\xAC\xBD\xBC\xA1\xAB\xBB\u2591\u2592\u2593\u2502\u2524\u2561\u2562\u2556\u2555\u2563\u2551\u2557\u255D\u255C\u255B\u2510\u2514\u2534\u252C\u251C\u2500\u253C\u255E\u255F\u255A\u2554\u2569\u2566\u2560\u2550\u256C\u2567\u2568\u2564\u2565\u2559\u2558\u2552\u2553\u256B\u256A\u2518\u250C\u2588\u2584\u258C\u2590\u2580\u03B1\xDF\u0393\u03C0\u03A3\u03C3\xB5\u03C4\u03A6\u0398\u03A9\u03B4\u221E\u03C6\u03B5\u2229\u2261\xB1\u2265\u2264\u2320\u2321\xF7\u2248\xB0\u2219\xB7\u221A\u207F\xB2\u25A0\xA0";
+    function validateFilename(filename) {
+      assert(filename.indexOf("\\") === -1, `Invalid characters in filename: ${filename}`);
+      assert(
+        // eslint-disable-next-line no-use-before-define
+        !ABSOLUTE_FILENAME_REGEX1.test(filename) && !ABSOLUTE_FILENAME_REGEX2.test(filename),
+        `Absolute path: ${filename}`
+      );
+      assert(filename.split("/").indexOf("..") === -1, `Relative path: ${filename}`);
+    }
+    var ABSOLUTE_FILENAME_REGEX1 = /^[a-zA-Z]:/;
+    var ABSOLUTE_FILENAME_REGEX2 = /^\//;
+    function dosDateTimeToDate(date, time) {
+      const day = date & 31;
+      const month = (date >> 5 & 15) - 1;
+      const year = (date >> 9 & 127) + 1980;
+      const millisecond = 0;
+      const second = (time & 31) * 2;
+      const minute = time >> 5 & 63;
+      const hour = time >> 11 & 31;
+      return new Date(Date.UTC(year, month, day, hour, minute, second, millisecond));
+    }
+    function readUInt64LE(buffer, offset) {
+      return buffer.readUInt32LE(offset + 4) * 4294967296 + buffer.readUInt32LE(offset);
+    }
+    async function streamToBuffer(stream) {
+      const chunks = [];
+      const collectStream = new WritableStream({
+        write(chunk, encoding, cb) {
+          chunks.push(chunk);
+          cb();
+        }
+      });
+      await pipeline(stream, collectStream);
+      return Buffer.concat(chunks);
+    }
+  }
+});
+
+// node_modules/yauzl-promise/lib/entry.js
+var require_entry = __commonJS({
+  "node_modules/yauzl-promise/lib/entry.js"(exports, module) {
+    "use strict";
+    var { createInflateRaw } = __require("zlib");
+    var { Transform: TransformStream2, pipeline } = __require("stream");
+    var calculateCrc32 = __require("@node-rs/crc32").crc32;
+    var { isObject, isBoolean, isPositiveInteger, isPositiveIntegerOrZero } = require_is_it_type2();
+    var assert = require_simple_invariant();
+    var { INTERNAL_SYMBOL, uncertainUncompressedSizeEntriesRegistry } = require_shared();
+    var { dosDateTimeToDate } = require_utils();
+    var MAC_LFH_EXTRA_FIELDS_LENGTH = 16;
+    var FOUR_GIB = 4294967296;
+    var Entry = class {
+      /**
+       * Class representing ZIP file entry.
+       * Class is exported in public interface, for purpose of `instanceof` checks, but constructor cannot
+       * be called by user. This is enforced by use of private symbol `INTERNAL_SYMBOL`.
+       * @class
+       * @param {Object} testSymbol - Must be `INTERNAL_SYMBOL`
+       * @param {Object} props - Entry properties (see `Zip` class's `_readEntryAt()` method)
+       */
+      constructor(testSymbol, props) {
+        assert(testSymbol === INTERNAL_SYMBOL, "Entry class cannot be instantiated directly");
+        Object.assign(this, props);
+      }
+      /**
+       * Get last modified date as JS `Date` object.
+       * @returns {Date} - Date
+       */
+      getLastMod() {
+        return dosDateTimeToDate(this.lastModDate, this.lastModTime);
+      }
+      /**
+       * Get if entry is encrypted.
+       * @returns {boolean} - `true` if is encrypted
+       */
+      isEncrypted() {
+        return (this.generalPurposeBitFlag & 1) !== 0;
+      }
+      /**
+       * Get if file data is compressed.
+       * Differs slightly from Yauzl's implementation, which only returns `true` if compression method
+       * is deflate. This returns `true` if it's compressed with *any* compression method.
+       * @returns {boolean} - `true` if file data is compressed
+       */
+      isCompressed() {
+        return this.compressionMethod !== 0;
+      }
+      /**
+       * Get readable stream for file data.
+       * @async
+       * @param {Object} [options] - Options
+       * @param {boolean} [options.decompress=true] - `false` to output raw data without decompression
+       * @param {boolean} [options.decrypt=true] - `false` to disable decryption if is encrypted
+       *   and output raw encrypted data
+       * @param {boolean} [options.validateCrc32=true] - `false` to skip CRC32 validation
+       * @param {number} [options.start] - Start offset (only valid if not decompressing)
+       * @param {number} [options.end] - End offset (only valid if not decompressing)
+       * @returns {Object} - Readable stream
+       */
+      async openReadStream(options) {
+        let decompress, decrypt, validateCrc32, start, end;
+        if (options != null) {
+          assert(isObject(options), "`options` must be an object if provided");
+          const unknownKey = Object.keys(options).find(
+            (key) => !["decompress", "decrypt", "validateCrc32", "start", "end"].includes(key)
+          );
+          assert(unknownKey === void 0, `Unknown option '${unknownKey}'`);
+          ({ decompress, decrypt, validateCrc32, start, end } = options);
+        }
+        if (decrypt == null) {
+          decrypt = this.isEncrypted();
+        } else {
+          assert(isBoolean(decrypt), "`options.decrypt` must be a boolean if provided");
+          if (!this.isEncrypted()) decrypt = false;
+        }
+        assert(!decrypt, "Decryption is not supported");
+        if (decompress == null) {
+          decompress = this.isCompressed();
+        } else {
+          assert(isBoolean(decompress), "`options.decompress` must be a boolean if provided");
+          if (!this.isCompressed()) decompress = false;
+        }
+        assert(
+          !decompress || this.compressionMethod === 8,
+          `Unsupported compression method ${this.compressionMethod}`
+        );
+        assert(!decompress || !this.isEncrypted(), "Cannot decompress encrypted data");
+        if (validateCrc32 == null) {
+          validateCrc32 = decompress || !this.isCompressed();
+        } else if (validateCrc32 === true) {
+          assert(!decompress || !this.isCompressed(), "Cannot validate CRC32 for uncompressed data");
+        } else {
+          assert(validateCrc32 === false, "`options.validateCrc32` must be a boolean if provided");
+        }
+        assert(!validateCrc32 || !this.isEncrypted(), "Cannot validate CRC32 of encrypted data");
+        if (start == null) {
+          start = 0;
+        } else if (start !== 0) {
+          assert(isPositiveInteger(start), "`options.start` must be a positive integer if provided");
+          assert(!decompress, "Cannot stream a section of file if decompressing");
+          assert(!validateCrc32, "Cannot validate CRC32 for a section of file");
+          assert(start <= this.compressedSize, "`start` is after end of file data");
+        }
+        if (end == null) {
+          end = this.compressedSize;
+        } else {
+          assert(isPositiveIntegerOrZero(end), "`options.end` must be a positive integer if provided");
+          assert(!decompress, "Cannot stream a section of file if decompressing");
+          assert(!validateCrc32, "Cannot validate CRC32 for a section of file");
+          assert(end <= this.compressedSize, "`end` is after end of file data");
+          assert(end >= start, "`end` is before `start`");
+        }
+        const buffer = await this.zip.reader.read(this.fileHeaderOffset, 30);
+        assert(buffer.readUInt32LE(0) === 67324752, "Invalid Local File Header signature");
+        const localCrc32 = buffer.readUInt32LE(14);
+        const localCompressedSize = buffer.readUInt32LE(18);
+        const localUncompressedSize = buffer.readUInt32LE(22);
+        const filenameLength = buffer.readUInt16LE(26);
+        const extraFieldsLength = buffer.readUInt16LE(28);
+        const fileDataOffset = this.fileHeaderOffset + 30 + filenameLength + extraFieldsLength;
+        this.fileDataOffset = fileDataOffset;
+        if (this.zip.isMacArchive || this.zip.isMaybeMacArchive) {
+          const matchesMacSignature = localCrc32 === 0 && localCompressedSize === 0 && localUncompressedSize === 0 && filenameLength === this.filenameLength && extraFieldsLength === this.extraFields.length * MAC_LFH_EXTRA_FIELDS_LENGTH;
+          if (this.zip.isMacArchive) {
+            assert(matchesMacSignature, "Misidentified Mac OS Archive Utility ZIP");
+          } else if (!matchesMacSignature) {
+            this.zip._setAsNotMacArchive();
+          }
+        }
+        if (this.compressedSize !== 0) {
+          assert(
+            fileDataOffset + this.compressedSize <= this.zip.footerOffset,
+            `File data overflows file bounds: ${fileDataOffset} + ${this.compressedSize} > ${this.zip.footerOffset}`
+          );
+        }
+        let stream = this.zip.reader.createReadStream(fileDataOffset + start, end - start);
+        const streams = [stream];
+        if (decompress) {
+          streams.push(createInflateRaw());
+          if (this.zip.validateEntrySizes) streams.push(new ValidateUncompressedSizeStream(this));
+        }
+        if (validateCrc32) streams.push(new ValidateCrc32Stream(this.crc32));
+        if (streams.length > 1) {
+          pipeline(streams, () => {
+          });
+          stream = streams[streams.length - 1];
+        }
+        return stream;
+      }
+    };
+    module.exports = Entry;
+    var ValidateUncompressedSizeStream = class extends TransformStream2 {
+      /**
+       * Transform stream to compare size of uncompressed stream to expected.
+       * If `entry.uncompressedSizeIsCertain === false`, only checks actual byte count is accurate
+       * in lower 32 bits. `entry.uncompressedSize` can be inaccurate in faulty Mac OS ZIPs where
+       * uncompressed size reported by ZIP is truncated to lower 32 bits.
+       * If it proves inaccurate, `entry.uncompressedSize` is updated,
+       * and ZIP is flagged as being Mac OS ZIP if it isn't already.
+       * @class
+       * @param {Object} entry - Entry object
+       */
+      constructor(entry) {
+        super();
+        this.byteCount = 0;
+        this.expectedByteCount = entry.uncompressedSize;
+        this.entry = entry;
+      }
+      _transform(chunk, encoding, cb) {
+        this.byteCount += chunk.length;
+        if (this.byteCount > this.expectedByteCount) {
+          if (this.entry.uncompressedSizeIsCertain) {
+            cb(new Error(
+              `Too many bytes in the stream. Expected ${this.expectedByteCount}, got at least ${this.byteCount}.`
+            ));
+            return;
+          }
+          if (this.entry.uncompressedSize === this.expectedByteCount) {
+            this.expectedByteCount += FOUR_GIB;
+            this.entry.uncompressedSize = this.expectedByteCount;
+            const { zip } = this.entry;
+            if (!zip.isMacArchive) {
+              if (!zip.isMaybeMacArchive) {
+                cb(new Error("Logic failure. Please raise an issue."));
+                return;
+              }
+              zip._setAsMacArchive(zip.numEntriesRead, zip._entryCursor);
+            }
+          } else {
+            this.expectedByteCount = this.entry.uncompressedSize;
+          }
+        }
+        cb(null, chunk);
+      }
+      _flush(cb) {
+        if (this.byteCount < this.expectedByteCount) {
+          cb(new Error(
+            `Not enough bytes in the stream. Expected ${this.expectedByteCount}, got only ${this.byteCount}.`
+          ));
+        } else {
+          if (!this.entry.uncompressedSizeIsCertain) {
+            this.entry.uncompressedSizeIsCertain = true;
+            const ref = this.entry._ref;
+            if (ref) {
+              this.entry._ref = null;
+              this.entry.zip._uncertainUncompressedSizeEntryRefs.delete(ref);
+              uncertainUncompressedSizeEntriesRegistry.unregister(ref);
+            }
+          }
+          cb();
+        }
+      }
+    };
+    var ValidateCrc32Stream = class extends TransformStream2 {
+      constructor(crc32) {
+        super();
+        this.crc32 = 0;
+        this.expectedCrc32 = crc32;
+      }
+      _transform(chunk, encoding, cb) {
+        this.crc32 = calculateCrc32(chunk, this.crc32);
+        cb(null, chunk);
+      }
+      _flush(cb) {
+        if (this.crc32 !== this.expectedCrc32) {
+          cb(new Error(`CRC32 validation failed. Expected ${this.expectedCrc32}, received ${this.crc32}.`));
+        } else {
+          cb();
+        }
+      }
+    };
+  }
+});
+
+// node_modules/yauzl-promise/lib/zip.js
+var require_zip = __commonJS({
+  "node_modules/yauzl-promise/lib/zip.js"(exports, module) {
+    "use strict";
+    var calculateCrc32 = __require("@node-rs/crc32").crc32;
+    var assert = require_simple_invariant();
+    var { isPositiveIntegerOrZero } = require_is_it_type2();
+    var Entry = require_entry();
+    var { INTERNAL_SYMBOL, uncertainUncompressedSizeEntriesRegistry } = require_shared();
+    var { decodeBuffer, validateFilename, readUInt64LE } = require_utils();
+    var EOCDR_WITHOUT_COMMENT_SIZE = 22;
+    var MAX_EOCDR_COMMENT_SIZE = 65535;
+    var MAC_CDH_EXTRA_FIELD_ID = 22613;
+    var MAC_CDH_EXTRA_FIELD_LENGTH = 8;
+    var MAC_CDH_EXTRA_FIELDS_LENGTH = MAC_CDH_EXTRA_FIELD_LENGTH + 4;
+    var MAC_LFH_EXTRA_FIELDS_LENGTH = 16;
+    var CDH_MIN_LENGTH = 46;
+    var CDH_MAX_LENGTH = CDH_MIN_LENGTH + 65535 * 3;
+    var CDH_MAX_LENGTH_MAC = CDH_MIN_LENGTH + 65535 + MAC_CDH_EXTRA_FIELDS_LENGTH;
+    var FOUR_GIB = 4294967296;
+    var Zip = class {
+      /**
+       * Class representing ZIP file.
+       * Class is exported in public interface, for purpose of `instanceof` checks, but constructor cannot
+       * be called by user. This is enforced by use of private symbol `INTERNAL_SYMBOL`.
+       * @class
+       * @param {Object} testSymbol - Must be `INTERNAL_SYMBOL`
+       * @param {Object} reader - `Reader` to use to access the ZIP
+       * @param {number} size - Size of ZIP file in bytes
+       * @param {Object} options - Options
+       * @param {boolean} [options.decodeStrings=true] - Decode filenames and comments to strings
+       * @param {boolean} [options.validateEntrySizes=true] - Validate entry sizes
+       * @param {boolean} [options.validateFilenames=true] - Validate filenames
+       * @param {boolean} [options.strictFilenames=false] - Don't allow backslashes (`\`) in filenames
+       * @param {boolean} [options.supportMacArchive=true] - Support Mac OS Archive Utility faulty ZIP files
+       */
+      constructor(testSymbol, reader, size, options) {
+        assert(
+          testSymbol === INTERNAL_SYMBOL,
+          "Zip class cannot be instantiated directly. Use one of the static methods."
+        );
+        this.reader = reader;
+        this.size = size;
+        Object.assign(this, options);
+        this.isZip64 = null;
+        this.entryCount = null;
+        this.entryCountIsCertain = true;
+        this.footerOffset = null;
+        this.centralDirectoryOffset = null;
+        this.centralDirectorySize = null;
+        this.centralDirectorySizeIsCertain = true;
+        this.comment = null;
+        this.numEntriesRead = 0;
+        this.isMacArchive = false;
+        this.isMaybeMacArchive = false;
+        this.compressedSizesAreCertain = true;
+        this.uncompressedSizesAreCertain = true;
+        this._isReading = false;
+        this._entryCursor = null;
+        this._fileCursor = null;
+        this._uncertainUncompressedSizeEntryRefs = null;
+        this._firstEntryProps = null;
+      }
+      /**
+       * Close ZIP file. Underlying reader will be closed.
+       * @async
+       * @returns {undefined}
+       */
+      close() {
+        return this.reader.close();
+      }
+      /**
+       * Getter for whether `Zip` is open for reading.
+       * @returns {boolean} - `true` if open
+       */
+      get isOpen() {
+        return this.reader.isOpen;
+      }
+      /**
+       * Locate Central Directory.
+       * @async
+       * @returns {undefined}
+       */
+      async _init() {
+        const eocdrBuffer = await this._locateEocdr();
+        this._parseEocdr(eocdrBuffer);
+        if (this.isZip64) await this._parseZip64Eocdr();
+        await this._locateCentralDirectory();
+        this._entryCursor = this.centralDirectoryOffset;
+      }
+      /**
+       * Locate End of Central Directory Record.
+       * @async
+       * @returns {Buffer} - Buffer containing EOCDR
+       */
+      async _locateEocdr() {
+        let bufferSize = EOCDR_WITHOUT_COMMENT_SIZE + MAX_EOCDR_COMMENT_SIZE;
+        if (this.size < bufferSize) {
+          assert(this.size >= EOCDR_WITHOUT_COMMENT_SIZE, "End of Central Directory Record not found");
+          bufferSize = this.size;
+        }
+        const bufferOffset = this.size - bufferSize;
+        const buffer = await this.reader.read(bufferOffset, bufferSize);
+        let pos;
+        for (pos = bufferSize - EOCDR_WITHOUT_COMMENT_SIZE; pos >= 0; pos--) {
+          if (buffer[pos] !== 80) continue;
+          if (buffer.readUInt32LE(pos) !== 101010256) continue;
+          const commentLength = buffer.readUInt16LE(pos + 20);
+          if (commentLength === bufferSize - pos - EOCDR_WITHOUT_COMMENT_SIZE) {
+            this.footerOffset = bufferOffset + pos;
+            return buffer.subarray(pos);
+          }
+        }
+        throw new Error("End of Central Directory Record not found");
+      }
+      /**
+       * Parse End of Central Directory Record.
+       * Get Central Directory location, size and entry count.
+       * @param {Buffer} eocdrBuffer - Buffer containing EOCDR
+       * @returns {undefined}
+       */
+      _parseEocdr(eocdrBuffer) {
+        const diskNumber = eocdrBuffer.readUInt16LE(4);
+        assert(diskNumber === 0, "Multi-disk ZIP files are not supported");
+        this.entryCount = eocdrBuffer.readUInt16LE(10);
+        this.centralDirectorySize = eocdrBuffer.readUInt32LE(12);
+        this.centralDirectoryOffset = eocdrBuffer.readUInt32LE(16);
+        this.comment = this.decodeStrings ? decodeBuffer(eocdrBuffer, 22, false) : Buffer.from(eocdrBuffer.subarray(22));
+        this.isZip64 = this.entryCount === 65535 || this.centralDirectoryOffset === 4294967295 || this.centralDirectorySize === 4294967295;
+      }
+      /**
+       * Parse ZIP64 End of Central Directory Locator + Record.
+       * Get Central Directory location, size and entry count, where ZIP64 extension used.
+       * @async
+       * @returns {undefined}
+       */
+      async _parseZip64Eocdr() {
+        const zip64EocdlOffset = this.footerOffset - 20;
+        assert(zip64EocdlOffset >= 0, "Cannot locate ZIP64 End of Central Directory Locator");
+        const zip64EocdlBuffer = await this.reader.read(zip64EocdlOffset, 20);
+        if (zip64EocdlBuffer.readUInt32LE(0) !== 117853008) {
+          if (this.supportMacArchive) {
+            this.isMacArchive = true;
+            return;
+          }
+          throw new Error("Invalid ZIP64 End of Central Directory Locator signature");
+        }
+        const zip64EocdrOffset = readUInt64LE(zip64EocdlBuffer, 8);
+        assert(
+          zip64EocdrOffset + 56 <= zip64EocdlOffset,
+          "Cannot locate ZIP64 End of Central Directory Record"
+        );
+        const zip64EocdrBuffer = await this.reader.read(zip64EocdrOffset, 56);
+        assert(
+          zip64EocdrBuffer.readUInt32LE(0) === 101075792,
+          "Invalid ZIP64 End of Central Directory Record signature"
+        );
+        const zip64EocdrSize = readUInt64LE(zip64EocdrBuffer, 4);
+        assert(
+          zip64EocdrOffset + zip64EocdrSize + 12 <= zip64EocdlOffset,
+          "Invalid ZIP64 End of Central Directory Record"
+        );
+        if (this.entryCount === 65535) this.entryCount = readUInt64LE(zip64EocdrBuffer, 32);
+        if (this.centralDirectorySize === 4294967295) {
+          this.centralDirectorySize = readUInt64LE(zip64EocdrBuffer, 40);
+        }
+        if (this.centralDirectoryOffset === 4294967295) {
+          this.centralDirectoryOffset = readUInt64LE(zip64EocdrBuffer, 48);
+        }
+        this.footerOffset = zip64EocdrOffset + zip64EocdrSize === zip64EocdlOffset ? zip64EocdrOffset : zip64EocdlOffset;
+      }
+      /**
+       * Locate Central Directory.
+       *
+       * In a well-formed ZIP file, the EOCDR accurately gives us the offset and size of Central
+       * Directory, and the entry count.
+       *
+       * However Mac OS Archive Utility, instead of using ZIP64 extension to record Central Directory
+       * offset or size >= 4 GiB, or entry count >= 65536, truncates size and offset to lower 32 bits,
+       * and entry count to lower 16 bits.
+       * i.e.:
+       * Actual offset = reported offset + n * (1 << 32)
+       * Actual size = reported size + m * (1 << 32)
+       * Actual entry count = reported entry count + o * (1 << 16)
+       * (where `n`, `m` and `o` are unknown)
+       *
+       * Identify if this may be a faulty Mac OS Archive Utility ZIP. If so, find the actual location of
+       * the Central Directory. Deduce which of above properties cannot be known with certainty.
+       *
+       * In some cases, it's not possible to immediately determine if a ZIP is definitely a Mac OS ZIP.
+       * If it may be, but not sure yet, record which properties are unknown at present.
+       * Later calls to `readEntry()` or `openReadStream()` will reveal more about the ZIP, and the
+       * determinaton of whether ZIP is a faulty Mac OS ZIP or not will be made then.
+       *
+       * Try to do this while ensuring a spec-compliant ZIP will never be misinterpretted.
+       *
+       * @async
+       * @returns {undefined}
+       */
+      async _locateCentralDirectory() {
+        if (!this.supportMacArchive) return;
+        if (this.isZip64) return;
+        if (this.size - this.footerOffset !== EOCDR_WITHOUT_COMMENT_SIZE) return;
+        let centralDirectoryEnd = this.centralDirectoryOffset + this.centralDirectorySize;
+        if (centralDirectoryEnd % FOUR_GIB !== this.footerOffset % FOUR_GIB) return;
+        if (this.entryCount === 0 && this.centralDirectoryOffset + CDH_MIN_LENGTH > this.footerOffset) {
+          assert(this.centralDirectorySize === 0, "Inconsistent Central Directory size and entry count");
+          return;
+        }
+        if (this.centralDirectorySize < this.entryCount * CDH_MIN_LENGTH) {
+          assert(
+            centralDirectoryEnd < this.footerOffset,
+            "Inconsistent Central Directory size and entry count"
+          );
+          this.isMacArchive = true;
+          centralDirectoryEnd = this.footerOffset;
+          this.centralDirectorySize = centralDirectoryEnd - this.centralDirectoryOffset;
+        }
+        if (this._recalculateEntryCount(0, this.centralDirectoryOffset)) {
+          this.isMacArchive = true;
+        }
+        let entry, alreadyCheckedOffset;
+        if (!this.isMacArchive) {
+          entry = await this._readEntryAt(this.centralDirectoryOffset);
+          if (entry && !firstEntryMaybeMac(entry)) {
+            assert(this.entryCount > 0, "Inconsistent Central Directory size and entry count");
+            this._firstEntryProps = entry;
+            return;
+          }
+          alreadyCheckedOffset = this.centralDirectoryOffset;
+        } else {
+          alreadyCheckedOffset = -1;
+        }
+        if (!entry) {
+          let offset = this.footerOffset - Math.max(this.centralDirectorySize, this.entryCount * CDH_MIN_LENGTH);
+          if (offset % FOUR_GIB < this.centralDirectoryOffset) {
+            assert(offset >= FOUR_GIB, "Inconsistent Central Directory size and entry count");
+            offset -= FOUR_GIB;
+          }
+          offset = Math.floor(offset / FOUR_GIB) * FOUR_GIB + this.centralDirectoryOffset;
+          while (offset > alreadyCheckedOffset) {
+            entry = await this._readEntryAt(offset);
+            if (entry) {
+              assert(firstEntryMaybeMac(entry), "Cannot locate Central Directory");
+              this.isMacArchive = true;
+              this.centralDirectoryOffset = offset;
+              break;
+            }
+            offset -= FOUR_GIB;
+          }
+        }
+        if (!entry) {
+          assert(
+            this.entryCount === 0 && this.centralDirectorySize === 0,
+            "Cannot locate Central Directory"
+          );
+          return;
+        }
+        if (this.entryCount === 0) this.isMacArchive = true;
+        if (this.isMacArchive) {
+          centralDirectoryEnd = this.footerOffset;
+          this.centralDirectorySize = centralDirectoryEnd - this.centralDirectoryOffset;
+          assert(this.centralDirectorySize > 0, "Inconsistent Central Directory size and entry count");
+          this._recalculateEntryCount(1, entry.entryEnd);
+          const minTotalDataSize = this.entryCount * 46 + entry.compressedSize + entry.filename.length + entry.extraFields.length * MAC_LFH_EXTRA_FIELDS_LENGTH;
+          if (minTotalDataSize + FOUR_GIB <= this.centralDirectoryOffset) {
+            this.compressedSizesAreCertain = false;
+          }
+        } else {
+          this.isMaybeMacArchive = true;
+          if (centralDirectoryEnd < this.footerOffset) {
+            this.centralDirectorySizeIsCertain = false;
+            this.entryCountIsCertain = false;
+          } else {
+            this._recalculateEntryCount(1, entry.entryEnd);
+          }
+          this._uncertainUncompressedSizeEntryRefs = /* @__PURE__ */ new Set();
+        }
+        if (this.entryCountIsCertain && !entryCountIsCertain(this.entryCount - 1, centralDirectoryEnd - entry.entryEnd)) this.entryCountIsCertain = false;
+        this.uncompressedSizesAreCertain = false;
+        this._fileCursor = 0;
+        this._firstEntryProps = entry;
+      }
+      /**
+       * Get next entry.
+       * @async
+       * @returns {Entry|null} - `Entry` object for next entry, or `null` if none remaining
+       */
+      async readEntry() {
+        assert(!this._isReading, "Cannot call `readEntry()` before previous call's promise has settled");
+        this._isReading = true;
+        try {
+          return await this._readEntry();
+        } finally {
+          this._isReading = false;
+        }
+      }
+      /**
+       * Get next entry.
+       * Implementation for `readEntry()`. Should not be called directly.
+       * @async
+       * @returns {Entry|null} - `Entry` object for next entry, or `null` if none remaining
+       */
+      async _readEntry() {
+        if (this.numEntriesRead === this.entryCount && this.entryCountIsCertain) return null;
+        let entryProps = this._firstEntryProps, entryEnd;
+        if (entryProps) {
+          this._firstEntryProps = null;
+          entryEnd = entryProps.entryEnd;
+        } else {
+          entryProps = await this._readEntryAt(this._entryCursor);
+          const centralDirectoryEnd = this.centralDirectoryOffset + this.centralDirectorySize;
+          if (!entryProps) {
+            assert(
+              !this.isMacArchive && this.numEntriesRead === this.entryCount && this._entryCursor === centralDirectoryEnd,
+              "Invalid Central Directory File Header signature"
+            );
+            if (this.isMaybeMacArchive) this._setAsNotMacArchive();
+            return null;
+          }
+          entryEnd = entryProps.entryEnd;
+          if (this.isMacArchive) {
+            assert(
+              entryMaybeMac(entryProps) && entryProps.fileHeaderOffset === this._fileCursor % FOUR_GIB,
+              "Inconsistent Central Directory structure"
+            );
+            entryProps.fileHeaderOffset = this._fileCursor;
+            if (!this.entryCountIsCertain) {
+              this._recalculateEntryCount(this.numEntriesRead + 1, entryEnd);
+              this._recalculateEntryCountIsCertain(this.numEntriesRead + 1, entryEnd);
+            }
+          } else if (this.isMaybeMacArchive) {
+            if (this._fileCursor >= FOUR_GIB) {
+              assert(
+                entryMaybeMac(entryProps) && entryProps.fileHeaderOffset === this._fileCursor % FOUR_GIB,
+                "Inconsistent Central Directory structure"
+              );
+              this._setAsMacArchive(this.numEntriesRead + 1, entryEnd);
+            } else if (!entryMaybeMac(entryProps) || entryProps.fileHeaderOffset !== this._fileCursor) {
+              this._setAsNotMacArchive();
+              assert(this.numEntriesRead !== this.entryCount, "Central Directory contains too many entries");
+            } else if (!this.centralDirectorySizeIsCertain && entryEnd + (this.entryCount - this.numEntriesRead - 1) * CDH_MIN_LENGTH > centralDirectoryEnd) {
+              this._setAsMacArchive(this.numEntriesRead + 1, entryEnd);
+            } else if (!this.entryCountIsCertain) {
+              if (this._recalculateEntryCount(this.numEntriesRead + 1, entryEnd)) {
+                this._setAsMacArchive(this.numEntriesRead + 1, entryEnd);
+              } else if (this.centralDirectorySizeIsCertain) {
+                this._recalculateEntryCountIsCertain(this.numEntriesRead + 1, entryEnd);
+              }
+            }
+          }
+        }
+        const fileDataOffsetIfMac = entryProps.fileHeaderOffset + 30 + entryProps.filename.length + entryProps.extraFields.length * MAC_LFH_EXTRA_FIELDS_LENGTH;
+        if (!this.compressedSizesAreCertain) {
+          const isNowCertain = await this._determineCompressedSize(entryProps, fileDataOffsetIfMac);
+          if (isNowCertain) this.compressedSizesAreCertain = true;
+        }
+        if (!this.uncompressedSizesAreCertain) {
+          if (entryProps.compressionMethod === 0) {
+            entryProps.uncompressedSize = entryProps.compressedSize;
+          } else if (entryProps.compressionMethod !== 8) {
+            entryProps.uncompressedSizeIsCertain = false;
+          } else {
+            const maxUncompressedSize = entryProps.compressedSize * 1032;
+            if (maxUncompressedSize > FOUR_GIB * 2 || maxUncompressedSize > FOUR_GIB && maxUncompressedSize % FOUR_GIB > entryProps.uncompressedSize) entryProps.uncompressedSizeIsCertain = false;
+          }
+        }
+        const entry = this._validateAndDecodeEntry(entryProps);
+        this._entryCursor = entryEnd;
+        this.numEntriesRead++;
+        if (this.isMacArchive || this.isMaybeMacArchive) {
+          this._fileCursor = fileDataOffsetIfMac + entry.compressedSize + (entryProps.compressionMethod === 8) * 16;
+          if (this.isMacArchive) {
+            entry.fileDataOffset = fileDataOffsetIfMac;
+          } else if (!entry.uncompressedSizeIsCertain) {
+            const ref = new WeakRef(entry);
+            entry._ref = ref;
+            this._uncertainUncompressedSizeEntryRefs.add(ref);
+            uncertainUncompressedSizeEntriesRegistry.register(entry, { zip: this, ref }, ref);
+          }
+        }
+        return entry;
+      }
+      /**
+       * Determine actual compressed size of entry.
+       * Update `compressedSize` if it's not what was reported.
+       * Return whether *all future* entries have certain compressed size.
+       *
+       * This method should only be called if this is a Mac ZIP, or possibly a Mac ZIP.
+       * i.e. Compressed sizes are not certain to be as reported in the ZIP.
+       *
+       * First attempt to prove that size can be known with certainty without reading from ZIP file.
+       * If that's not possible, search ZIP file for the Data Descriptor which follows file data.
+       *
+       * Care has to be taken to avoid data races, because this function contains async IO calls,
+       * and possible for user to call `openReadStream()` on another Entry, or an event on a stream
+       * already in process to cause the ZIP to be identified as definitely Mac or definitely not Mac
+       * during this function's async calls.
+       *
+       * @param {Object} entryProps - Entry properties
+       * @param {number} fileDataOffsetIfMac - If ZIP is a Mac OS ZIP, offset file data will start at
+       * @returns {boolean} - `true` if all later entry compressed sizes must be certain
+       */
+      async _determineCompressedSize(entryProps, fileDataOffsetIfMac) {
+        let numEntriesRemaining = this.entryCount - this.numEntriesRead - 1;
+        let dataSpaceRemaining = this.centralDirectoryOffset - fileDataOffsetIfMac - entryProps.compressedSize - (entryProps.compressionMethod === 8) * 16;
+        if (dataSpaceRemaining - numEntriesRemaining * 30 < FOUR_GIB) return true;
+        if (this.isMacArchive && numEntriesRemaining === 0) {
+          assert(
+            dataSpaceRemaining % FOUR_GIB === 0,
+            "Invalid ZIP structure for Mac OS Archive Utility ZIP"
+          );
+          entryProps.compressedSize += dataSpaceRemaining;
+          return true;
+        }
+        if (entryProps.compressionMethod === 0) {
+          return false;
+        }
+        let fileDataEnd = fileDataOffsetIfMac + entryProps.compressedSize;
+        while (true) {
+          const buffer = await this.reader.read(fileDataEnd, 20);
+          if (buffer.readUInt32LE(0) === 134695760 && buffer.readUInt32LE(4) === entryProps.crc32 && buffer.readUInt32LE(8) === entryProps.compressedSize && buffer.readUInt32LE(12) === entryProps.uncompressedSize && (buffer.readUInt32LE(16) === 67324752 || fileDataEnd + 16 === this.centralDirectoryOffset)) break;
+          if (this.compressedSizesAreCertain) {
+            fileDataEnd = null;
+            break;
+          }
+          fileDataEnd += FOUR_GIB;
+          if (fileDataEnd + 16 > this.centralDirectoryOffset) {
+            fileDataEnd = null;
+            break;
+          }
+        }
+        if (fileDataEnd === null) {
+          assert(!this.isMacArchive, "Cannot locate file Data Descriptor");
+          if (this.isMaybeMacArchive) this._setAsNotMacArchive();
+          return true;
+        }
+        if (fileDataEnd === fileDataOffsetIfMac + entryProps.compressedSize) {
+          return false;
+        }
+        if (!this.isMacArchive) {
+          assert(this.isMaybeMacArchive, "Cannot locate file Data Descriptor");
+          this._setAsMacArchive(this.numEntriesRead + 1, entryProps.entryEnd);
+        }
+        entryProps.compressedSize = fileDataEnd - fileDataOffsetIfMac;
+        numEntriesRemaining = this.entryCount - this.numEntriesRead - 1;
+        dataSpaceRemaining = this.centralDirectoryOffset - fileDataEnd - 16;
+        return dataSpaceRemaining - numEntriesRemaining * 30 < FOUR_GIB;
+      }
+      /**
+       * Attempt to read Central Directory Header at offset.
+       * Returns properties of entry. Does not decode strings or validate file sizes.
+       * @async
+       * @param {number} offset - Offset to parse CDH at
+       * @returns {Object|null} - Entry properties or `null` if no Central Directory File Header found
+       */
+      async _readEntryAt(offset) {
+        assert(offset + CDH_MIN_LENGTH <= this.footerOffset, "Invalid Central Directory File Header");
+        const entryBuffer = await this.reader.read(offset, CDH_MIN_LENGTH);
+        if (entryBuffer.readUInt32LE(0) !== 33639248) return null;
+        const versionMadeBy = entryBuffer.readUInt16LE(4);
+        const versionNeededToExtract = entryBuffer.readUInt16LE(6);
+        const generalPurposeBitFlag = entryBuffer.readUInt16LE(8);
+        const compressionMethod = entryBuffer.readUInt16LE(10);
+        const lastModTime = entryBuffer.readUInt16LE(12);
+        const lastModDate = entryBuffer.readUInt16LE(14);
+        const crc32 = entryBuffer.readUInt32LE(16);
+        let compressedSize = entryBuffer.readUInt32LE(20);
+        let uncompressedSize = entryBuffer.readUInt32LE(24);
+        const filenameLength = entryBuffer.readUInt16LE(28);
+        const extraFieldLength = entryBuffer.readUInt16LE(30);
+        const commentLength = entryBuffer.readUInt16LE(32);
+        const internalFileAttributes = entryBuffer.readUInt16LE(36);
+        const externalFileAttributes = entryBuffer.readUInt32LE(38);
+        let fileHeaderOffset = entryBuffer.readUInt32LE(42);
+        assert((generalPurposeBitFlag & 64) === 0, "Strong encryption is not supported");
+        const extraDataOffset = offset + CDH_MIN_LENGTH, extraDataSize = filenameLength + extraFieldLength + commentLength, entryEnd = extraDataOffset + extraDataSize;
+        assert(entryEnd <= this.footerOffset, "Invalid Central Directory File Header");
+        const extraBuffer = await this.reader.read(extraDataOffset, extraDataSize);
+        const filename = extraBuffer.subarray(0, filenameLength);
+        const commentStart = filenameLength + extraFieldLength;
+        const extraFieldBuffer = extraBuffer.subarray(filenameLength, commentStart);
+        let i = 0;
+        const extraFields = [];
+        let zip64EiefBuffer;
+        while (i < extraFieldBuffer.length - 3) {
+          const headerId = extraFieldBuffer.readUInt16LE(i + 0), dataSize = extraFieldBuffer.readUInt16LE(i + 2), dataStart = i + 4, dataEnd = dataStart + dataSize;
+          assert(dataEnd <= extraFieldBuffer.length, "Extra field length exceeds extra field buffer size");
+          const dataBuffer = extraFieldBuffer.subarray(dataStart, dataEnd);
+          extraFields.push({ id: headerId, data: dataBuffer });
+          i = dataEnd;
+          if (headerId === 1) zip64EiefBuffer = dataBuffer;
+        }
+        const comment = extraBuffer.subarray(commentStart, extraDataSize);
+        const isZip64 = uncompressedSize === 4294967295 || compressedSize === 4294967295 || fileHeaderOffset === 4294967295;
+        if (isZip64) {
+          assert(zip64EiefBuffer, "Expected ZIP64 Extended Information Extra Field");
+          let index = 0;
+          if (uncompressedSize === 4294967295) {
+            assert(
+              index + 8 <= zip64EiefBuffer.length,
+              "ZIP64 Extended Information Extra Field does not include uncompressed size"
+            );
+            uncompressedSize = readUInt64LE(zip64EiefBuffer, index);
+            index += 8;
+          }
+          if (compressedSize === 4294967295) {
+            assert(
+              index + 8 <= zip64EiefBuffer.length,
+              "ZIP64 Extended Information Extra Field does not include compressed size"
+            );
+            compressedSize = readUInt64LE(zip64EiefBuffer, index);
+            index += 8;
+          }
+          if (fileHeaderOffset === 4294967295) {
+            assert(
+              index + 8 <= zip64EiefBuffer.length,
+              "ZIP64 Extended Information Extra Field does not include relative header offset"
+            );
+            fileHeaderOffset = readUInt64LE(zip64EiefBuffer, index);
+            index += 8;
+          }
+        }
+        assert(fileHeaderOffset + 30 <= this.footerOffset, "Invalid location for file data");
+        return {
+          filename,
+          compressedSize,
+          uncompressedSize,
+          uncompressedSizeIsCertain: true,
+          // May not be correct - may be set to `false` in `readEntry()`
+          compressionMethod,
+          fileHeaderOffset,
+          fileDataOffset: null,
+          isZip64,
+          crc32,
+          lastModTime,
+          lastModDate,
+          comment,
+          extraFields,
+          versionMadeBy,
+          versionNeededToExtract,
+          generalPurposeBitFlag,
+          internalFileAttributes,
+          externalFileAttributes,
+          filenameLength,
+          entryEnd
+        };
+      }
+      /**
+       * Update `entryCount` if it's lower than is possible for it to be.
+       * @param {number} numEntriesRead - Number of entries read so far
+       * @param {number} entryCursor - Current position in Central Directory
+       * @returns {boolean} - `true` if entry count was increased
+       */
+      _recalculateEntryCount(numEntriesRead, entryCursor) {
+        const numEntriesRemaining = this.entryCount - numEntriesRead, centralDirectoryRemaining = this.centralDirectoryOffset + this.centralDirectorySize - entryCursor, entryMaxLen = this.isMacArchive ? CDH_MAX_LENGTH_MAC : CDH_MAX_LENGTH;
+        if (numEntriesRemaining * entryMaxLen >= centralDirectoryRemaining) return false;
+        const minEntriesRemaining = Math.ceil(centralDirectoryRemaining / CDH_MAX_LENGTH_MAC);
+        this.entryCount += minEntriesRemaining - numEntriesRemaining + 65535 & 65536;
+        return true;
+      }
+      /**
+       * Update `entryCountIsCertain` if it's impossible for entry count to be 65536 larger than
+       * current `entryCount` without exceeding bounds of Central Directory.
+       * This calculation is only valid if size of Central Directory is certain,
+       * so must only be called if `centralDirectorySizeIsCertain` is `true`.
+       * @param {number} numEntriesRead - Number of entries read so far
+       * @param {number} entryCursor - Current position in Central Directory
+       * @returns {undefined}
+       */
+      _recalculateEntryCountIsCertain(numEntriesRead, entryCursor) {
+        const numEntriesRemaining = this.entryCount - numEntriesRead, centralDirectoryRemaining = this.centralDirectoryOffset + this.centralDirectorySize - entryCursor;
+        if (entryCountIsCertain(numEntriesRemaining, centralDirectoryRemaining)) {
+          this.entryCountIsCertain = true;
+        }
+      }
+      /**
+       * Suspected Mac OS Archive Utility ZIP has turned out to definitely be one.
+       * Flag as Mac ZIP and calculate Central Directory size if it was ambiguous previously.
+       * Recalculate minimum entry count and whether it's now certain.
+       * @param {number} numEntriesRead - Number of entries read so far
+       * @param {number} entryCursor - Current position in Central Directory
+       * @returns {undefined}
+       */
+      _setAsMacArchive(numEntriesRead, entryCursor) {
+        this.isMacArchive = true;
+        this.isMaybeMacArchive = false;
+        if (!this.centralDirectorySizeIsCertain) {
+          this.centralDirectorySize = this.footerOffset - this.centralDirectoryOffset;
+          this.centralDirectorySizeIsCertain = true;
+        }
+        if (!this.entryCountIsCertain) {
+          this._recalculateEntryCount(numEntriesRead, entryCursor);
+          this._recalculateEntryCountIsCertain(numEntriesRead, entryCursor);
+        }
+        for (const ref of this._uncertainUncompressedSizeEntryRefs) {
+          uncertainUncompressedSizeEntriesRegistry.unregister(ref);
+          const entry = ref.deref();
+          if (entry) entry._ref = null;
+        }
+        this._uncertainUncompressedSizeEntryRefs = null;
+      }
+      /**
+       * Suspected Mac OS Archive Utility ZIP has turned out not to be one.
+       * Reset flags.
+       * @returns {undefined}
+       */
+      _setAsNotMacArchive() {
+        this.isMaybeMacArchive = false;
+        this.entryCountIsCertain = true;
+        this.centralDirectorySizeIsCertain = true;
+        this.compressedSizesAreCertain = true;
+        this.uncompressedSizesAreCertain = true;
+        this._fileCursor = null;
+        for (const ref of this._uncertainUncompressedSizeEntryRefs) {
+          uncertainUncompressedSizeEntriesRegistry.unregister(ref);
+          const entry = ref.deref();
+          if (entry) {
+            entry._ref = null;
+            entry.uncompressedSizeIsCertain = true;
+          }
+        }
+        this._uncertainUncompressedSizeEntryRefs = null;
+      }
+      /**
+       * Convert entry properties returned from `_readEntryAt()` to a full `Entry` object.
+       * Decode strings and validate entry size according to options.
+       * @param {Object} entry - Entry properties returned by `_readEntryAt()`
+       * @returns {Entry} - `Entry` object
+       */
+      _validateAndDecodeEntry(entry) {
+        if (this.decodeStrings) {
+          let filename;
+          for (const extraField of entry.extraFields) {
+            if (extraField.id !== 28789) continue;
+            if (extraField.data.length < 6) continue;
+            if (extraField.data[0] !== 1) continue;
+            const oldNameCrc32 = extraField.data.readUInt32LE(1);
+            if (calculateCrc32(entry.filename) !== oldNameCrc32) continue;
+            filename = decodeBuffer(extraField.data, 5, true);
+            break;
+          }
+          const isUtf8 = (entry.generalPurposeBitFlag & 2048) !== 0;
+          if (filename === void 0) filename = decodeBuffer(entry.filename, 0, isUtf8);
+          if (this.validateFilenames) {
+            if (!this.strictFilenames) filename = filename.replace(/\\/g, "/");
+            validateFilename(filename);
+          }
+          entry.filename = filename;
+          for (const extraField of entry.extraFields) {
+            extraField.data = Buffer.from(extraField.data);
+          }
+          entry.comment = decodeBuffer(entry.comment, 0, isUtf8);
+        }
+        if (this.validateEntrySizes && entry.compressionMethod === 0) {
+          const expectedCompressedSize = entry.generalPurposeBitFlag & 1 ? entry.uncompressedSize + 12 : entry.uncompressedSize;
+          assert(
+            entry.compressedSize === expectedCompressedSize,
+            `Compressed/uncompressed size mismatch for stored file: ${entry.compressedSize} !== ${expectedCompressedSize}`
+          );
+        }
+        let entryEnd;
+        ({ entryEnd, ...entry } = entry);
+        return new Entry(INTERNAL_SYMBOL, { ...entry, zip: this, _ref: null });
+      }
+      /**
+       * Read multiple entries.
+       * If `numEntries` is provided, will read at maximum that number of entries.
+       * Otherwise, reads all entries.
+       * @async
+       * @param {number} [numEntries] - Number of entries to read
+       * @returns {Array<Entry>} - Array of entries
+       */
+      async readEntries(numEntries) {
+        if (numEntries != null) {
+          assert(isPositiveIntegerOrZero(numEntries), "`numEntries` must be a positive integer if provided");
+        } else {
+          numEntries = Infinity;
+        }
+        const entries = [];
+        for (let i = 0; i < numEntries; i++) {
+          const entry = await this.readEntry();
+          if (!entry) break;
+          entries.push(entry);
+        }
+        return entries;
+      }
+      /**
+       * Get async iterator for entries.
+       * Usage: `for await (const entry of zip) { ... }`
+       * @returns {Object} - Async iterator
+       */
+      [Symbol.asyncIterator]() {
+        return {
+          next: async () => {
+            const entry = await this.readEntry();
+            return { value: entry, done: entry === null };
+          }
+        };
+      }
+      /**
+       * Get readable stream for file data.
+       * @async
+       * @param {Entry} entry - `Entry` object
+       * @param {Object} [options] - Options
+       * @param {boolean} [options.decompress] - `false` to output raw data without decompression
+       * @param {boolean} [options.decrypt] - `true` to decrypt if is encrypted
+       * @param {number} [options.start] - Start offset (only valid if not decompressing)
+       * @param {number} [options.end] - End offset (only valid if not decompressing)
+       * @returns {Object} - Readable stream
+       */
+      async openReadStream(entry, options) {
+        assert(entry instanceof Entry, "`entry` must be an instance of `Entry`");
+        assert(entry.zip === this, "`entry` must be an `Entry` from this ZIP file");
+        return await entry.openReadStream(options);
+      }
+    };
+    module.exports = Zip;
+    function entryCountIsCertain(entryCount, centralDirectorySize) {
+      return (entryCount + 65536) * CDH_MIN_LENGTH > centralDirectorySize;
+    }
+    function firstEntryMaybeMac(entry) {
+      if (entry.fileHeaderOffset !== 0) return false;
+      return entryMaybeMac(entry);
+    }
+    function entryMaybeMac(entry) {
+      if (entry.versionMadeBy !== 789) return false;
+      if (entry.comment.length !== 0) return false;
+      if (entry.isZip64) return false;
+      if (entry.versionNeededToExtract === 20) {
+        if (entry.generalPurposeBitFlag !== 8 || entry.compressionMethod !== 8 || endsWithSlash(entry.filename)) return false;
+      } else if (entry.versionNeededToExtract === 10) {
+        if (entry.generalPurposeBitFlag !== 0 || entry.compressionMethod !== 0 || entry.uncompressedSize !== entry.compressedSize) return false;
+        if (entry.extraFields.length === 0) {
+          if (entry.compressedSize === 0 || endsWithSlash(entry.filename)) return false;
+          return true;
+        }
+        if (entry.compressedSize !== 0 || entry.crc32 !== 0) return false;
+      } else {
+        return false;
+      }
+      if (entry.extraFields.length !== 1 || entry.extraFields[0].id !== MAC_CDH_EXTRA_FIELD_ID || entry.extraFields[0].data.length !== MAC_CDH_EXTRA_FIELD_LENGTH) return false;
+      return true;
+    }
+    function endsWithSlash(filename) {
+      return filename[filename.length - 1] === 47;
+    }
+  }
+});
+
+// node_modules/yauzl-promise/lib/reader.js
+var require_reader = __commonJS({
+  "node_modules/yauzl-promise/lib/reader.js"(exports, module) {
+    "use strict";
+    var fs = __require("fs");
+    var { PassThrough: PassThroughStream, Readable: ReadableStream2 } = __require("stream");
+    var { promisify } = __require("util");
+    var { isPositiveIntegerOrZero } = require_is_it_type2();
+    var assert = require_simple_invariant();
+    var openAsync = promisify(fs.open);
+    var closeAsync = promisify(fs.close);
+    var { streamToBuffer } = require_utils();
+    var Reader = class {
+      constructor() {
+        this.isOpen = false;
+        this.readCount = 0;
+      }
+      /**
+       * Open reader.
+       * Calls `._open()` method defined by subclass.
+       * If already open, does nothing.
+       * @async
+       * @returns {undefined}
+       */
+      async open() {
+        if (this.isOpen) return;
+        this.isOpen = true;
+        await this._open();
+      }
+      /**
+       * Close reader.
+       * Calls `._close()` method defined by subclass.
+       * If already closed, does nothing.
+       * @async
+       * @returns {undefined}
+       * @throws {Error} - If Reader is currently being read from
+       */
+      async close() {
+        if (!this.isOpen) return;
+        assert(this.readCount === 0, "Cannot close while reading in progress");
+        this.isOpen = false;
+        await this._close();
+      }
+      /**
+       * Read bytes into Buffer.
+       * @async
+       * @param {number} start - Starting position to read at
+       * @param {number} length - Number of bytes to read
+       * @returns {Buffer} - Buffer
+       * @throws {Error} - If Reader is not open
+       */
+      async read(start, length) {
+        assert(this.isOpen, "Cannot call `read()` on a reader which is not open");
+        if (length === 0) return Buffer.allocUnsafe();
+        this.readCount++;
+        try {
+          return await this._read(start, length);
+        } finally {
+          this.readCount--;
+        }
+      }
+      /**
+       * Create readable stream to read from Reader.
+       * @param {number} start - Position to start reading at
+       * @param {number} length - Number of bytes to read
+       * @returns {Object} - Readable stream
+       * @throws {Error} - If arguments invalid or reader is not open
+       */
+      createReadStream(start, length) {
+        assert(isPositiveIntegerOrZero(start), "`start` must be a positive integer or zero");
+        assert(isPositiveIntegerOrZero(length), "`length` must be a positive integer or zero");
+        assert(this.isOpen, "Cannot call `createReadStream()` on a reader which is not open");
+        if (length === 0) {
+          const emptyStream = new PassThroughStream();
+          setImmediate(() => emptyStream.end());
+          return emptyStream;
+        }
+        this.readCount++;
+        try {
+          const stream = this._createReadStream(start, length);
+          let isEnded = false;
+          const onEnd = () => {
+            if (isEnded) return;
+            isEnded = true;
+            this.readCount--;
+          };
+          const originalDestroy = stream.destroy;
+          stream.destroy = function(err) {
+            onEnd();
+            return originalDestroy.call(this, err);
+          };
+          stream.on("end", onEnd);
+          stream.on("error", onEnd);
+          stream.on("close", onEnd);
+          return stream;
+        } catch (err) {
+          this.readCount--;
+          throw err;
+        }
+      }
+      /**
+       * Open Reader.
+       * Default implementation does nothing. Subclasses can optionally implement this.
+       * @async
+       * @returns {undefined}
+       */
+      async _open() {
+      }
+      // eslint-disable-line class-methods-use-this, no-empty-function
+      /**
+       * Close Reader.
+       * Default implementation does nothing. Subclasses can optionally implement this.
+       * @async
+       * @returns {undefined}
+       */
+      async _close() {
+      }
+      // eslint-disable-line class-methods-use-this, no-empty-function
+      /**
+       * Read bytes from Reader into a Buffer.
+       * Subclasses can override this.
+       * @async
+       * @param {number} start - Starting position to read at
+       * @param {number} length - Number of bytes to read
+       * @returns {Buffer} - Buffer
+       */
+      async _read(start, length) {
+        const stream = this._createReadStream(start, length);
+        const buffer = await streamToBuffer(stream);
+        assert(buffer.length === length, "Unexpected end of file");
+        return buffer;
+      }
+      // eslint-disable-next-line jsdoc/require-returns-check
+      /**
+       * Create readable stream to read from Reader.
+       * Subclasses must implement this.
+       * @param {number} start - Position to start reading at
+       * @param {number} length - Number of bytes to read
+       * @returns {Object} - Readable stream
+       * @throws {Error} - If fail to create stream
+       */
+      _createReadStream(start, length) {
+        throw new Error("Not implemented");
+      }
+    };
+    var shimmedFs = {
+      open() {
+        throw new Error(
+          "Shimmed FS `open` method should not be called. If you get this error, please raise an issue."
+        );
+      },
+      read(...args) {
+        return fs.read(...args);
+      },
+      close(fd, cb) {
+        setImmediate(() => cb(null));
+      }
+    };
+    var FdReader = class extends Reader {
+      /**
+       * Create `FdReader`.
+       * @param {number} fd - File descriptor
+       */
+      constructor(fd) {
+        super();
+        this.fd = fd;
+      }
+      _close() {
+        return closeAsync(this.fd);
+      }
+      _read(start, length) {
+        return new Promise((resolve2, reject) => {
+          const buffer = Buffer.allocUnsafe(length);
+          fs.read(this.fd, buffer, 0, length, start, (err, bytesRead) => {
+            if (err) {
+              reject(err);
+            } else if (bytesRead !== length) {
+              reject(new Error("Unexpected end of file"));
+            } else {
+              resolve2(buffer);
+            }
+          });
+        });
+      }
+      _createReadStream(start, length) {
+        return fs.createReadStream(null, { start, end: start + length - 1, fd: this.fd, fs: shimmedFs });
+      }
+    };
+    var FileReader = class extends Reader {
+      /**
+       * Create `FileReader`.
+       * @param {string} path - File path
+       */
+      constructor(path) {
+        super();
+        this.path = path;
+        this.fd = null;
+      }
+      async _open() {
+        this.fd = await openAsync(this.path, "r", 292);
+      }
+      async _close() {
+        await closeAsync(this.fd);
+        this.fd = null;
+      }
+    };
+    FileReader.prototype._read = FdReader.prototype._read;
+    FileReader.prototype._createReadStream = FdReader.prototype._createReadStream;
+    var BufferReader = class extends Reader {
+      /**
+       * Create `BufferReader`.
+       * @param {Buffer} buffer - Buffer
+       */
+      constructor(buffer) {
+        super();
+        this.buffer = buffer;
+      }
+      async _read(start, length) {
+        const end = start + length;
+        assert(end <= this.buffer.length, "Cannot read beyond end of buffer");
+        return this.buffer.subarray(start, end);
+      }
+      _createReadStream(start, length) {
+        const end = start + length;
+        assert(end <= this.buffer.length, "Cannot read beyond end of buffer");
+        const slice = this.buffer.subarray(start, end);
+        return ReadableStream2.from(slice);
+      }
+    };
+    module.exports = { Reader, FdReader, FileReader, BufferReader };
+  }
+});
+
+// node_modules/yauzl-promise/lib/index.js
+var require_lib = __commonJS({
+  "node_modules/yauzl-promise/lib/index.js"(exports, module) {
+    "use strict";
+    var { fstat } = __require("fs");
+    var { promisify } = __require("util");
+    var { isObject, isString, isBoolean, isInteger, isPositiveInteger } = require_is_it_type2();
+    var assert = require_simple_invariant();
+    var fstatAsync = promisify(fstat);
+    var Zip = require_zip();
+    var Entry = require_entry();
+    var { Reader, FileReader, FdReader, BufferReader } = require_reader();
+    var { dosDateTimeToDate, validateFilename } = require_utils();
+    var { INTERNAL_SYMBOL } = require_shared();
+    module.exports = {
+      Zip,
+      Entry,
+      open: open2,
+      fromFd,
+      fromBuffer,
+      fromReader,
+      Reader,
+      dosDateTimeToDate,
+      validateFilename
+    };
+    async function open2(path, options) {
+      assert(isString(path), "`path` must be a string");
+      options = validateOptions(options);
+      const reader = new FileReader(path);
+      await reader.open();
+      const { size } = await fstatAsync(reader.fd);
+      const zip = new Zip(INTERNAL_SYMBOL, reader, size, options);
+      await zip._init();
+      return zip;
+    }
+    async function fromFd(fd, options) {
+      assert(isInteger(fd), "`fd` must be an integer");
+      options = validateOptions(options);
+      const reader = new FdReader(fd);
+      await reader.open();
+      const { size } = await fstatAsync(fd);
+      const zip = new Zip(INTERNAL_SYMBOL, reader, size, options);
+      await zip._init();
+      return zip;
+    }
+    async function fromBuffer(buffer, options) {
+      assert(buffer instanceof Buffer, "`buffer` must be a Buffer");
+      options = validateOptions(options);
+      const reader = new BufferReader(buffer);
+      await reader.open();
+      const zip = new Zip(INTERNAL_SYMBOL, reader, buffer.length, options);
+      await zip._init();
+      return zip;
+    }
+    async function fromReader(reader, size, options) {
+      assert(reader instanceof Reader, "`reader` must be an instance of `Reader` class");
+      assert(isPositiveInteger(size), "`size` must be a positive integer");
+      options = validateOptions(options);
+      await reader.open();
+      const zip = new Zip(INTERNAL_SYMBOL, reader, size, options);
+      await zip._init();
+      return zip;
+    }
+    function validateOptions(inputOptions) {
+      const options = {
+        decodeStrings: true,
+        validateEntrySizes: true,
+        validateFilenames: true,
+        strictFilenames: false,
+        supportMacArchive: true
+      };
+      if (inputOptions != null) {
+        assert(isObject(inputOptions), "`options` must be an object if provided");
+        for (const [key, value] of Object.entries(inputOptions)) {
+          assert(Object.hasOwn(options, key), `Unknown option '${key}'`);
+          assert(isBoolean(value), `\`options.${key}\` must be a boolean if provided`);
+          options[key] = value;
+        }
+      }
+      return options;
+    }
+  }
+});
+
+// node_modules/yauzl-promise/index.js
+var require_yauzl_promise = __commonJS({
+  "node_modules/yauzl-promise/index.js"(exports, module) {
+    "use strict";
+    module.exports = require_lib();
+  }
+});
+
 // node_modules/undici/lib/core/symbols.js
 var require_symbols = __commonJS({
   "node_modules/undici/lib/core/symbols.js"(exports, module) {
@@ -4038,7 +5999,7 @@ var require_connect = __commonJS({
 });
 
 // node_modules/undici/lib/llhttp/utils.js
-var require_utils = __commonJS({
+var require_utils2 = __commonJS({
   "node_modules/undici/lib/llhttp/utils.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
@@ -4063,7 +6024,7 @@ var require_constants2 = __commonJS({
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.SPECIAL_HEADERS = exports.HEADER_STATE = exports.MINOR = exports.MAJOR = exports.CONNECTION_TOKEN_CHARS = exports.HEADER_CHARS = exports.TOKEN = exports.STRICT_TOKEN = exports.HEX = exports.URL_CHAR = exports.STRICT_URL_CHAR = exports.USERINFO_CHARS = exports.MARK = exports.ALPHANUM = exports.NUM = exports.HEX_MAP = exports.NUM_MAP = exports.ALPHA = exports.FINISH = exports.H_METHOD_MAP = exports.METHOD_MAP = exports.METHODS_RTSP = exports.METHODS_ICE = exports.METHODS_HTTP = exports.METHODS = exports.LENIENT_FLAGS = exports.FLAGS = exports.TYPE = exports.ERROR = void 0;
-    var utils_1 = require_utils();
+    var utils_1 = require_utils2();
     var ERROR;
     (function(ERROR2) {
       ERROR2[ERROR2["OK"] = 0] = "OK";
@@ -20205,7 +22166,7 @@ var require_logger = __commonJS({
 });
 
 // node_modules/@citation-js/core/lib/plugins/input/type.js
-var require_type = __commonJS({
+var require_type2 = __commonJS({
   "node_modules/@citation-js/core/lib/plugins/input/type.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", {
@@ -20329,7 +22290,7 @@ var require_parser = __commonJS({
       value: true
     });
     exports.TypeParser = exports.FormatParser = exports.DataParser = void 0;
-    var _type = require_type();
+    var _type = require_type2();
     function _defineProperty(e, r, t) {
       return (r = _toPropertyKey(r)) in e ? Object.defineProperty(e, r, { value: t, enumerable: true, configurable: true, writable: true }) : e[r] = t, e;
     }
@@ -20679,7 +22640,7 @@ var require_output = __commonJS({
 });
 
 // node_modules/@citation-js/name/lib/index.js
-var require_lib = __commonJS({
+var require_lib2 = __commonJS({
   "node_modules/@citation-js/name/lib/index.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", {
@@ -20713,7 +22674,7 @@ var require_csl = __commonJS({
       value: true
     });
     exports.clean = parseCsl;
-    var _name = require_lib();
+    var _name = require_lib2();
     function ownKeys(e, r) {
       var t = Object.keys(e);
       if (Object.getOwnPropertySymbols) {
@@ -21036,7 +22997,7 @@ var require_data = __commonJS({
     exports.hasDataParser = hasDataParser;
     exports.listDataParser = listDataParser;
     exports.removeDataParser = removeDataParser;
-    var _type = require_type();
+    var _type = require_type2();
     var parsers = {};
     var asyncParsers = {};
     var nativeParsers = {
@@ -21111,7 +23072,7 @@ var require_register = __commonJS({
     exports.list = list;
     exports.remove = remove;
     var _parser = require_parser();
-    var _type = require_type();
+    var _type = require_type2();
     var _data = require_data();
     var formats = {};
     function add(format, parsers) {
@@ -21275,7 +23236,7 @@ var require_deepCopy = __commonJS({
 });
 
 // node_modules/webidl-conversions/lib/index.js
-var require_lib2 = __commonJS({
+var require_lib3 = __commonJS({
   "node_modules/webidl-conversions/lib/index.js"(exports, module) {
     "use strict";
     var conversions = {};
@@ -21428,7 +23389,7 @@ var require_lib2 = __commonJS({
 });
 
 // node_modules/whatwg-url/lib/utils.js
-var require_utils2 = __commonJS({
+var require_utils3 = __commonJS({
   "node_modules/whatwg-url/lib/utils.js"(exports, module) {
     "use strict";
     module.exports.mixin = function mixin(target, source) {
@@ -22849,8 +24810,8 @@ var require_URL_impl = __commonJS({
 var require_URL = __commonJS({
   "node_modules/whatwg-url/lib/URL.js"(exports, module) {
     "use strict";
-    var conversions = require_lib2();
-    var utils = require_utils2();
+    var conversions = require_lib3();
+    var utils = require_utils3();
     var Impl = require_URL_impl();
     var impl = utils.implSymbol;
     function URL2(url) {
@@ -23044,7 +25005,7 @@ var require_public_api = __commonJS({
 });
 
 // node_modules/node-fetch/lib/index.js
-var require_lib3 = __commonJS({
+var require_lib4 = __commonJS({
   "node_modules/node-fetch/lib/index.js"(exports, module) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
@@ -24282,7 +26243,7 @@ var require_lib3 = __commonJS({
 });
 
 // node_modules/sync-fetch/shared.js
-var require_shared = __commonJS({
+var require_shared2 = __commonJS({
   "node_modules/sync-fetch/shared.js"(exports, module) {
     var Stream = __require("stream");
     function serializeHeaders(headers) {
@@ -24434,8 +26395,8 @@ var require_sync_fetch = __commonJS({
     var exec = __require("child_process").execFileSync;
     var path = __require("path");
     var { URL: URL2 } = __require("url");
-    var _fetch = require_lib3();
-    var shared = require_shared();
+    var _fetch = require_lib4();
+    var shared = require_shared2();
     function fetch2(resource, init) {
       const request2 = [];
       if (resource instanceof fetch2.Request) {
@@ -24591,7 +26552,7 @@ var require_sync_fetch = __commonJS({
 var require_fetch_node = __commonJS({
   "node_modules/fetch-ponyfill/fetch-node.js"(exports, module) {
     "use strict";
-    var fetch2 = require_lib3();
+    var fetch2 = require_lib4();
     function wrapFetchForNode(fetch3) {
       return function(u, options) {
         if (typeof u === "string" && u.slice(0, 2) === "//") {
@@ -25204,7 +27165,7 @@ var require_chain = __commonJS({
     var _index = require_util10();
     var _logger = _interopRequireDefault(require_logger());
     var _register = require_register();
-    var _type = require_type();
+    var _type = require_type2();
     var _data = require_data();
     var _graph = require_graph();
     function _interopRequireDefault(e) {
@@ -25351,7 +27312,7 @@ var require_input2 = __commonJS({
         }
       });
     });
-    var _type = require_type();
+    var _type = require_type2();
     Object.keys(_type).forEach(function(key) {
       if (key === "default" || key === "__esModule") return;
       if (Object.prototype.hasOwnProperty.call(_exportNames, key)) return;
@@ -25507,7 +27468,7 @@ var require_sort = __commonJS({
     });
     exports.sort = sort;
     var _label = require_label();
-    var _name = require_lib();
+    var _name = require_lib2();
     function getComparisonValue(obj, prop, label = prop === "label") {
       let value = label ? (0, _label.getLabel)(obj) : obj[prop];
       switch (prop) {
@@ -26316,7 +28277,7 @@ var require_plugin_common = __commonJS({
 });
 
 // node_modules/@citation-js/core/lib/index.js
-var require_lib4 = __commonJS({
+var require_lib5 = __commonJS({
   "node_modules/@citation-js/core/lib/index.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", {
@@ -26633,7 +28594,7 @@ var require_output4 = __commonJS({
 });
 
 // node_modules/@citation-js/date/lib/index.js
-var require_lib5 = __commonJS({
+var require_lib6 = __commonJS({
   "node_modules/@citation-js/date/lib/index.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", {
@@ -26667,8 +28628,8 @@ var require_json3 = __commonJS({
       value: true
     });
     exports.record = exports.quickscrapeRecord = void 0;
-    var _date = require_lib5();
-    var _name = require_lib();
+    var _date = require_lib6();
+    var _name = require_lib2();
     function nameProps(person) {
       const {
         firstname,
@@ -26810,7 +28771,7 @@ var require_json3 = __commonJS({
 });
 
 // node_modules/@citation-js/plugin-bibjson/lib/index.js
-var require_lib6 = __commonJS({
+var require_lib7 = __commonJS({
   "node_modules/@citation-js/plugin-bibjson/lib/index.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", {
@@ -26818,7 +28779,7 @@ var require_lib6 = __commonJS({
     });
     exports.ref = exports.parsers = exports.formats = void 0;
     var json = _interopRequireWildcard(require_json3());
-    var _core = require_lib4();
+    var _core = require_lib5();
     function _getRequireWildcardCache(e) {
       if ("function" != typeof WeakMap) return null;
       var r = /* @__PURE__ */ new WeakMap(), t = /* @__PURE__ */ new WeakMap();
@@ -27984,7 +29945,7 @@ var require_file2 = __commonJS({
     });
     exports.bibtexGrammar = void 0;
     exports.parse = parse;
-    var _core = require_lib4();
+    var _core = require_lib5();
     var _moo = _interopRequireDefault(require_moo());
     var _config = _interopRequireDefault(require_config2());
     var _constants = require_constants6();
@@ -28323,7 +30284,7 @@ var require_bibtxt = __commonJS({
 });
 
 // node_modules/@citation-js/plugin-bibtex/lib/mapping/shared.js
-var require_shared2 = __commonJS({
+var require_shared3 = __commonJS({
   "node_modules/@citation-js/plugin-bibtex/lib/mapping/shared.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", {
@@ -28333,7 +30294,7 @@ var require_shared2 = __commonJS({
     exports.formatLabel = formatLabel;
     exports.parseDate = parseDate;
     exports.parseMonth = parseMonth;
-    var _core = require_lib4();
+    var _core = require_lib5();
     var _config = _interopRequireDefault(require_config2());
     function _interopRequireDefault(e) {
       return e && e.__esModule ? e : { default: e };
@@ -28668,10 +30629,10 @@ var require_biblatex = __commonJS({
       value: true
     });
     exports.default = void 0;
-    var _core = require_lib4();
-    var _date = require_lib5();
+    var _core = require_lib5();
+    var _date = require_lib6();
     var _biblatexTypes = _interopRequireDefault(require_biblatexTypes());
-    var _shared = require_shared2();
+    var _shared = require_shared3();
     function _interopRequireDefault(e) {
       return e && e.__esModule ? e : { default: e };
     }
@@ -29251,10 +31212,10 @@ var require_bibtex = __commonJS({
       value: true
     });
     exports.default = void 0;
-    var _core = require_lib4();
-    var _date = require_lib5();
+    var _core = require_lib5();
+    var _date = require_lib6();
     var _bibtexTypes = _interopRequireDefault(require_bibtexTypes());
-    var _shared = require_shared2();
+    var _shared = require_shared3();
     function _interopRequireDefault(e) {
       return e && e.__esModule ? e : { default: e };
     }
@@ -29638,7 +31599,7 @@ var require_mapping = __commonJS({
     exports.formatBibtex = formatBibtex;
     exports.parse = parse;
     exports.parseBibtex = parseBibtex;
-    var _shared = require_shared2();
+    var _shared = require_shared3();
     var _biblatex = _interopRequireDefault(require_biblatex());
     var _bibtex = _interopRequireDefault(require_bibtex());
     var _crossref = require_crossref();
@@ -29856,7 +31817,7 @@ var require_value = __commonJS({
     exports.parse = parse;
     exports.parseAnnotation = parseAnnotation;
     exports.valueGrammar = void 0;
-    var _core = require_lib4();
+    var _core = require_lib5();
     var _moo = _interopRequireDefault(require_moo());
     var _config = _interopRequireDefault(require_config2());
     var constants = _interopRequireWildcard(require_constants6());
@@ -30909,7 +32870,7 @@ var require_output5 = __commonJS({
       value: true
     });
     exports.default = void 0;
-    var _core = require_lib4();
+    var _core = require_lib5();
     var _entries = require_entries2();
     var _bibtex = require_bibtex2();
     var _bibtxt = require_bibtxt2();
@@ -30938,10 +32899,10 @@ var require_output5 = __commonJS({
 });
 
 // node_modules/@citation-js/plugin-bibtex/lib/index.js
-var require_lib7 = __commonJS({
+var require_lib8 = __commonJS({
   "node_modules/@citation-js/plugin-bibtex/lib/index.js"() {
     "use strict";
-    var _core = require_lib4();
+    var _core = require_lib5();
     var _index = require_input5();
     var _config = _interopRequireDefault(require_config2());
     var _index2 = _interopRequireDefault(require_output5());
@@ -31015,7 +32976,7 @@ var require_locales2 = __commonJS({
       value: true
     });
     exports.locales = exports.default = void 0;
-    var _core = require_lib4();
+    var _core = require_lib5();
     var _locales = _interopRequireDefault(require_locales());
     function _interopRequireDefault(e) {
       return e && e.__esModule ? e : { default: e };
@@ -31057,7 +33018,7 @@ var require_styles2 = __commonJS({
       value: true
     });
     exports.templates = exports.default = void 0;
-    var _core = require_lib4();
+    var _core = require_lib5();
     var _styles = _interopRequireDefault(require_styles());
     function _interopRequireDefault(e) {
       return e && e.__esModule ? e : { default: e };
@@ -50148,7 +52109,7 @@ var require_bibliography = __commonJS({
       value: true
     });
     exports.default = bibliography;
-    var _core = require_lib4();
+    var _core = require_lib5();
     var _engines = _interopRequireDefault(require_engines());
     var _attr = require_attr();
     function _interopRequireDefault(e) {
@@ -50203,7 +52164,7 @@ var require_citation = __commonJS({
       value: true
     });
     exports.default = citation;
-    var _core = require_lib4();
+    var _core = require_lib5();
     var _engines = _interopRequireDefault(require_engines());
     function _interopRequireDefault(e) {
       return e && e.__esModule ? e : { default: e };
@@ -50252,10 +52213,10 @@ var require_citation = __commonJS({
 });
 
 // node_modules/@citation-js/plugin-csl/lib/index.js
-var require_lib8 = __commonJS({
+var require_lib9 = __commonJS({
   "node_modules/@citation-js/plugin-csl/lib/index.js"() {
     "use strict";
-    var _core = require_lib4();
+    var _core = require_lib5();
     var _locales = require_locales2();
     var _styles = require_styles2();
     var _engines = _interopRequireDefault(require_engines());
@@ -50294,7 +52255,7 @@ var require_id = __commonJS({
 });
 
 // node_modules/@citation-js/plugin-doi/lib/type.js
-var require_type2 = __commonJS({
+var require_type3 = __commonJS({
   "node_modules/@citation-js/plugin-doi/lib/type.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", {
@@ -50328,7 +52289,7 @@ var require_json4 = __commonJS({
       value: true
     });
     exports.default = exports.parse = parseDoiJson;
-    var _type = _interopRequireDefault(require_type2());
+    var _type = _interopRequireDefault(require_type3());
     function _interopRequireDefault(e) {
       return e && e.__esModule ? e : { default: e };
     }
@@ -50365,7 +52326,7 @@ var require_api2 = __commonJS({
     });
     exports.parse = parseDoiApi;
     exports.parseAsync = parseDoiApiAsync;
-    var _core = require_lib4();
+    var _core = require_lib5();
     var _json = _interopRequireDefault(require_json4());
     function _interopRequireDefault(e) {
       return e && e.__esModule ? e : { default: e };
@@ -50394,18 +52355,18 @@ var require_api2 = __commonJS({
 });
 
 // node_modules/@citation-js/plugin-doi/lib/index.js
-var require_lib9 = __commonJS({
+var require_lib10 = __commonJS({
   "node_modules/@citation-js/plugin-doi/lib/index.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", {
       value: true
     });
     exports.ref = exports.parsers = exports.formats = void 0;
-    var _core = require_lib4();
+    var _core = require_lib5();
     var id = _interopRequireWildcard(require_id());
     var api = _interopRequireWildcard(require_api2());
     var json = _interopRequireWildcard(require_json4());
-    var type = _interopRequireWildcard(require_type2());
+    var type = _interopRequireWildcard(require_type3());
     function _getRequireWildcardCache(e) {
       if ("function" != typeof WeakMap) return null;
       var r = /* @__PURE__ */ new WeakMap(), t = /* @__PURE__ */ new WeakMap();
@@ -55336,7 +57297,7 @@ var require_converters = __commonJS({
       value: true
     });
     exports.default = void 0;
-    var _date = require_lib5();
+    var _date = require_lib6();
     var _types = _interopRequireDefault(require_types());
     function _interopRequireDefault(e) {
       return e && e.__esModule ? e : { default: e };
@@ -56365,7 +58326,7 @@ var require_ris = __commonJS({
     exports.parseMixed = parseMixed;
     exports.parseNew = parseNew;
     exports.parseOld = parseOld;
-    var _core = require_lib4();
+    var _core = require_lib5();
     var _config = _interopRequireDefault(require_config3());
     var _index = require_spec();
     var _converters = _interopRequireDefault(require_converters());
@@ -56533,10 +58494,10 @@ var require_ris = __commonJS({
 });
 
 // node_modules/@citation-js/plugin-ris/lib/index.js
-var require_lib10 = __commonJS({
+var require_lib11 = __commonJS({
   "node_modules/@citation-js/plugin-ris/lib/index.js"() {
     "use strict";
-    var _core = require_lib4();
+    var _core = require_lib5();
     var _config = _interopRequireDefault(require_config3());
     var _ris = require_ris();
     function _interopRequireDefault(e) {
@@ -58847,7 +60808,7 @@ var require_api3 = __commonJS({
     });
     exports.parse = parse;
     exports.parseAsync = parseAsync;
-    var _core = require_lib4();
+    var _core = require_lib5();
     var {
       fetchFile,
       fetchFileAsync
@@ -59116,9 +61077,9 @@ var require_prop = __commonJS({
     exports.getLabel = getLabel;
     exports.default = exports.parse = exports.parseProp = parseProp;
     exports.parseType = parseType;
-    var _core = require_lib4();
-    var _name = require_lib();
-    var _date = require_lib5();
+    var _core = require_lib5();
+    var _name = require_lib2();
+    var _date = require_lib6();
     var _config = _interopRequireDefault(require_config4());
     var _types = _interopRequireDefault(require_types2());
     function _interopRequireDefault(e) {
@@ -59534,7 +61495,7 @@ var require_entity = __commonJS({
     exports.default = exports.parse = exports.parseEntities = parseEntities;
     exports.parseAsync = exports.parseEntitiesAsync = parseEntitiesAsync;
     exports.parseEntity = parseEntity;
-    var _core = require_lib4();
+    var _core = require_lib5();
     var response = _interopRequireWildcard(require_response2());
     var _prop = require_prop();
     var _props = _interopRequireDefault(require_props());
@@ -59688,14 +61649,14 @@ var require_url = __commonJS({
 });
 
 // node_modules/@citation-js/plugin-wikidata/lib/index.js
-var require_lib11 = __commonJS({
+var require_lib12 = __commonJS({
   "node_modules/@citation-js/plugin-wikidata/lib/index.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", {
       value: true
     });
     exports.ref = exports.parsers = exports.formats = void 0;
-    var _core = require_lib4();
+    var _core = require_lib5();
     var id = _interopRequireWildcard(require_id2());
     var entity = _interopRequireWildcard(require_entity());
     var prop = _interopRequireWildcard(require_prop());
@@ -59825,16 +61786,16 @@ var require_lib11 = __commonJS({
 // node_modules/citation-js/index.js
 var require_citation_js = __commonJS({
   "node_modules/citation-js/index.js"(exports, module) {
-    var core = require_lib4();
-    require_lib6();
+    var core = require_lib5();
     require_lib7();
     require_lib8();
     require_lib9();
     require_lib10();
     require_lib11();
+    require_lib12();
     var citeproc = require_citeproc_commonjs();
-    var name = require_lib();
-    var date = require_lib5();
+    var name = require_lib2();
+    var date = require_lib6();
     function clone(obj) {
       const copy = {};
       for (const key in obj) {
@@ -59928,7 +61889,7 @@ var require_citation_js = __commonJS({
       name: name.parse,
       date: date.parse,
       csl: core.plugins.input.util.clean,
-      bibjson: require_lib6().parsers.json.record,
+      bibjson: require_lib7().parsers.json.record,
       bibtex: /* @__PURE__ */ ((parsers, entries, types) => ({
         json(entries2) {
           return entries2.parse([].concat(entries2));
@@ -59962,7 +61923,7 @@ var require_citation_js = __commonJS({
         async: {
           api: doi.parsers.api.parseAsync
         }
-      }))(require_lib9()),
+      }))(require_lib10()),
       json: require_input3().parsers.json.parse,
       wikidata: ((wikidata) => ({
         json: wikidata.parsers.entity.parse,
@@ -59975,7 +61936,7 @@ var require_citation_js = __commonJS({
             return Promise.resolve(wikidata.parsers.prop.parse.apply(this, args));
           }
         }
-      }))(require_lib11())
+      }))(require_lib12())
     }, Cite2.plugins.input);
     Cite2.get = Object.assign({
       dict: Cite2.plugins.dict,
@@ -59997,7 +61958,7 @@ var require_citation_js = __commonJS({
       }))(
         require_output5().default,
         require_entries2(),
-        require_shared2().Converters,
+        require_shared3().Converters,
         require_bibtexTypes().target
       ),
       bibtxt: require_bibtxt2().format,
@@ -64415,8 +66376,8 @@ var import_fast_xml_parser = __toESM(require_fxp(), 1);
 
 // dist/io/fs.js
 import { readFile, writeFile, stat, readdir } from "node:fs/promises";
+var yauzl = __toESM(require_yauzl_promise(), 1);
 import { basename, extname, join, resolve } from "node:path";
-import * as yauzl from "yauzl-promise";
 
 // dist/util/errors.js
 var ExtractorError = class extends Error {

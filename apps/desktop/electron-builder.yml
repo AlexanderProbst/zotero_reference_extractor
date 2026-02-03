@@ -16,25 +16,13 @@ extraResources:
     to: "core"
     filter:
       - "**/*"
-  # External packages with native modules (yauzl-promise and its deps)
-  - from: "../../node_modules/yauzl-promise"
-    to: "core/node_modules/yauzl-promise"
-    filter:
-      - "**/*"
+  # Native module for CRC32 (used by yauzl-promise for ZIP extraction)
   - from: "../../node_modules/@node-rs/crc32"
     to: "core/node_modules/@node-rs/crc32"
     filter:
       - "**/*"
   - from: "../../node_modules/@node-rs/crc32-win32-arm64-msvc"
     to: "core/node_modules/@node-rs/crc32-win32-arm64-msvc"
-    filter:
-      - "**/*"
-  - from: "../../node_modules/is-it-type"
-    to: "core/node_modules/is-it-type"
-    filter:
-      - "**/*"
-  - from: "../../node_modules/simple-invariant"
-    to: "core/node_modules/simple-invariant"
     filter:
       - "**/*"
 
