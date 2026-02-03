@@ -12,11 +12,31 @@ files:
   - "!**/*.map"
 
 extraResources:
-  - from: "../../dist"
+  - from: "../../dist-bundle"
     to: "core"
     filter:
       - "**/*"
-      - "!**/*.map"
+  # External packages with native modules (yauzl-promise and its deps)
+  - from: "../../node_modules/yauzl-promise"
+    to: "core/node_modules/yauzl-promise"
+    filter:
+      - "**/*"
+  - from: "../../node_modules/@node-rs/crc32"
+    to: "core/node_modules/@node-rs/crc32"
+    filter:
+      - "**/*"
+  - from: "../../node_modules/@node-rs/crc32-win32-arm64-msvc"
+    to: "core/node_modules/@node-rs/crc32-win32-arm64-msvc"
+    filter:
+      - "**/*"
+  - from: "../../node_modules/is-it-type"
+    to: "core/node_modules/is-it-type"
+    filter:
+      - "**/*"
+  - from: "../../node_modules/simple-invariant"
+    to: "core/node_modules/simple-invariant"
+    filter:
+      - "**/*"
 
 extraMetadata:
   main: dist-electron/main.js
