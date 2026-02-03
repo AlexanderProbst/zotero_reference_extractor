@@ -1,5 +1,6 @@
-import { request } from 'undici';
-import { createReadStream, statSync } from 'node:fs';
+import { request, FormData } from 'undici';
+import { readFileSync, statSync } from 'node:fs';
+import { basename } from 'node:path';
 import { XMLParser } from 'fast-xml-parser';
 import { CslItem, ExtractedRef, GrobidConfig } from '../core/types.js';
 import { GrobidUnavailableError, GrobidProcessingError, DiagnosticMessages } from '../util/errors.js';
@@ -65,16 +66,18 @@ export async function extractFromPdf(
 
   try {
     // Read file and create form data
-    const fileBuffer = await readFileAsBuffer(filePath);
+    const fileBuffer = readFileSync(filePath);
+    const fileName = basename(filePath);
+
+    // Create multipart form data
+    const formData = new FormData();
+    formData.append('input', new Blob([fileBuffer], { type: 'application/pdf' }), fileName);
+    formData.append('consolidateCitations', '1');
 
     // Call GROBID processReferences endpoint
     const response = await request(`${fullConfig.baseUrl}/api/processReferences`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-        'Accept': 'application/xml',
-      },
-      body: `input=${encodeURIComponent(fileBuffer.toString('base64'))}&consolidateCitations=1`,
+      body: formData,
       headersTimeout: fullConfig.timeout,
       bodyTimeout: fullConfig.timeout,
     });
@@ -139,16 +142,19 @@ export async function extractFromPdfFullText(
   }
 
   try {
-    const fileBuffer = await readFileAsBuffer(filePath);
+    const fileBuffer = readFileSync(filePath);
+    const fileName = basename(filePath);
+
+    // Create multipart form data
+    const formData = new FormData();
+    formData.append('input', new Blob([fileBuffer], { type: 'application/pdf' }), fileName);
+    formData.append('consolidateCitations', '1');
+    formData.append('includeRawCitations', '1');
 
     // Use processFulltextDocument for complete extraction
     const response = await request(`${fullConfig.baseUrl}/api/processFulltextDocument`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-        'Accept': 'application/xml',
-      },
-      body: `input=${encodeURIComponent(fileBuffer.toString('base64'))}&consolidateCitations=1&includeRawCitations=1`,
+      body: formData,
       headersTimeout: fullConfig.timeout,
       bodyTimeout: fullConfig.timeout,
     });
@@ -174,20 +180,6 @@ export async function extractFromPdfFullText(
     const message = error instanceof Error ? error.message : 'Unknown error';
     throw new GrobidProcessingError(filePath, message);
   }
-}
-
-/**
- * Read file as buffer
- */
-async function readFileAsBuffer(filePath: string): Promise<Buffer> {
-  const chunks: Buffer[] = [];
-  const stream = createReadStream(filePath);
-
-  for await (const chunk of stream) {
-    chunks.push(chunk as Buffer);
-  }
-
-  return Buffer.concat(chunks);
 }
 
 /**

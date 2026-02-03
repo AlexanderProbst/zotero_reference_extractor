@@ -8342,7 +8342,7 @@ var require_formdata = __commonJS({
     var { File: NativeFile } = __require("node:buffer");
     var nodeUtil = __require("node:util");
     var File = globalThis.File ?? NativeFile;
-    var FormData = class _FormData {
+    var FormData2 = class _FormData {
       constructor(form) {
         webidl.util.markAsUncloneable(this);
         if (form !== void 0) {
@@ -8444,8 +8444,8 @@ var require_formdata = __commonJS({
         return `FormData ${output.slice(output.indexOf("]") + 2)}`;
       }
     };
-    iteratorMixin("FormData", FormData, kState, "name", "value");
-    Object.defineProperties(FormData.prototype, {
+    iteratorMixin("FormData", FormData2, kState, "name", "value");
+    Object.defineProperties(FormData2.prototype, {
       append: kEnumerableProperty,
       delete: kEnumerableProperty,
       get: kEnumerableProperty,
@@ -8473,7 +8473,7 @@ var require_formdata = __commonJS({
       }
       return { name, value };
     }
-    module.exports = { FormData, makeEntry };
+    module.exports = { FormData: FormData2, makeEntry };
   }
 });
 
@@ -8743,7 +8743,7 @@ var require_body = __commonJS({
       extractMimeType,
       utf8DecodeBytes
     } = require_util3();
-    var { FormData } = require_formdata();
+    var { FormData: FormData2 } = require_formdata();
     var { kState } = require_symbols2();
     var { webidl } = require_webidl();
     var { Blob: Blob2 } = __require("node:buffer");
@@ -8963,13 +8963,13 @@ Content-Type: ${value.type || "application/octet-stream"}\r
                   if (parsed === "failure") {
                     throw new TypeError("Failed to parse body as FormData.");
                   }
-                  const fd = new FormData();
+                  const fd = new FormData2();
                   fd[kState] = parsed;
                   return fd;
                 }
                 case "application/x-www-form-urlencoded": {
                   const entries = new URLSearchParams(value.toString());
-                  const fd = new FormData();
+                  const fd = new FormData2();
                   for (const [name, value2] of entries) {
                     fd.append(name, value2);
                   }
@@ -15506,7 +15506,7 @@ var require_response = __commonJS({
     } = require_constants3();
     var { kState, kHeaders } = require_symbols2();
     var { webidl } = require_webidl();
-    var { FormData } = require_formdata();
+    var { FormData: FormData2 } = require_formdata();
     var { URLSerializer } = require_data_url();
     var { kConstruct } = require_symbols();
     var assert = __require("node:assert");
@@ -15819,7 +15819,7 @@ var require_response = __commonJS({
       ReadableStream
     );
     webidl.converters.FormData = webidl.interfaceConverter(
-      FormData
+      FormData2
     );
     webidl.converters.URLSearchParams = webidl.interfaceConverter(
       URLSearchParams
@@ -66791,7 +66791,8 @@ function extractItemData(item, sourceFile) {
 // dist/extractors/pdf.js
 var import_undici = __toESM(require_undici(), 1);
 var import_fast_xml_parser2 = __toESM(require_fxp(), 1);
-import { createReadStream, statSync } from "node:fs";
+import { readFileSync, statSync } from "node:fs";
+import { basename as basename2 } from "node:path";
 var DEFAULT_GROBID_CONFIG = {
   baseUrl: "http://localhost:8070",
   timeout: 6e4,
@@ -66821,14 +66822,14 @@ async function extractFromPdf(filePath, config = {}) {
   const stats = statSync(filePath);
   log.debug(`PDF file size: ${(stats.size / 1024).toFixed(1)} KB`);
   try {
-    const fileBuffer = await readFileAsBuffer(filePath);
+    const fileBuffer = readFileSync(filePath);
+    const fileName = basename2(filePath);
+    const formData = new import_undici.FormData();
+    formData.append("input", new Blob([fileBuffer], { type: "application/pdf" }), fileName);
+    formData.append("consolidateCitations", "1");
     const response = await (0, import_undici.request)(`${fullConfig.baseUrl}/api/processReferences`, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/x-www-form-urlencoded",
-        "Accept": "application/xml"
-      },
-      body: `input=${encodeURIComponent(fileBuffer.toString("base64"))}&consolidateCitations=1`,
+      body: formData,
       headersTimeout: fullConfig.timeout,
       bodyTimeout: fullConfig.timeout
     });
@@ -66874,14 +66875,15 @@ async function extractFromPdfFullText(filePath, config = {}) {
     throw new GrobidUnavailableError(fullConfig.baseUrl, "Service not responding");
   }
   try {
-    const fileBuffer = await readFileAsBuffer(filePath);
+    const fileBuffer = readFileSync(filePath);
+    const fileName = basename2(filePath);
+    const formData = new import_undici.FormData();
+    formData.append("input", new Blob([fileBuffer], { type: "application/pdf" }), fileName);
+    formData.append("consolidateCitations", "1");
+    formData.append("includeRawCitations", "1");
     const response = await (0, import_undici.request)(`${fullConfig.baseUrl}/api/processFulltextDocument`, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/x-www-form-urlencoded",
-        "Accept": "application/xml"
-      },
-      body: `input=${encodeURIComponent(fileBuffer.toString("base64"))}&consolidateCitations=1&includeRawCitations=1`,
+      body: formData,
       headersTimeout: fullConfig.timeout,
       bodyTimeout: fullConfig.timeout
     });
@@ -66903,14 +66905,6 @@ async function extractFromPdfFullText(filePath, config = {}) {
     const message = error instanceof Error ? error.message : "Unknown error";
     throw new GrobidProcessingError(filePath, message);
   }
-}
-async function readFileAsBuffer(filePath) {
-  const chunks = [];
-  const stream = createReadStream(filePath);
-  for await (const chunk of stream) {
-    chunks.push(chunk);
-  }
-  return Buffer.concat(chunks);
 }
 function parseTeiToCsl(teiXml, sourceFile) {
   const parser = new import_fast_xml_parser2.XMLParser({
