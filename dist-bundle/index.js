@@ -66799,9 +66799,13 @@ var DEFAULT_GROBID_CONFIG = {
   // 60 seconds
   acceptFormat: "tei"
 };
+function normalizeBaseUrl(url) {
+  return url.replace(/\/+$/, "");
+}
 async function checkGrobidHealth(baseUrl) {
+  const normalizedUrl = normalizeBaseUrl(baseUrl);
   try {
-    const response = await (0, import_undici.request)(`${baseUrl}/api/isalive`, {
+    const response = await (0, import_undici.request)(`${normalizedUrl}/api/isalive`, {
       method: "GET",
       headersTimeout: 5e3,
       bodyTimeout: 5e3
@@ -66813,11 +66817,12 @@ async function checkGrobidHealth(baseUrl) {
 }
 async function extractFromPdf(filePath, config = {}) {
   const fullConfig = { ...DEFAULT_GROBID_CONFIG, ...config };
+  const baseUrl = normalizeBaseUrl(fullConfig.baseUrl);
   log.debug(`Extracting from PDF via GROBID: ${filePath}`);
-  log.debug(`GROBID URL: ${fullConfig.baseUrl}`);
-  const isAlive = await checkGrobidHealth(fullConfig.baseUrl);
+  log.debug(`GROBID URL: ${baseUrl}`);
+  const isAlive = await checkGrobidHealth(baseUrl);
   if (!isAlive) {
-    throw new GrobidUnavailableError(fullConfig.baseUrl, "Service not responding");
+    throw new GrobidUnavailableError(baseUrl, "Service not responding");
   }
   const stats = statSync(filePath);
   log.debug(`PDF file size: ${(stats.size / 1024).toFixed(1)} KB`);
@@ -66827,7 +66832,7 @@ async function extractFromPdf(filePath, config = {}) {
     const formData = new import_undici.FormData();
     formData.append("input", new Blob([fileBuffer], { type: "application/pdf" }), fileName);
     formData.append("consolidateCitations", "1");
-    const response = await (0, import_undici.request)(`${fullConfig.baseUrl}/api/processReferences`, {
+    const response = await (0, import_undici.request)(`${baseUrl}/api/processReferences`, {
       method: "POST",
       body: formData,
       headersTimeout: fullConfig.timeout,
@@ -66869,10 +66874,11 @@ async function extractFromPdf(filePath, config = {}) {
 }
 async function extractFromPdfFullText(filePath, config = {}) {
   const fullConfig = { ...DEFAULT_GROBID_CONFIG, ...config };
+  const baseUrl = normalizeBaseUrl(fullConfig.baseUrl);
   log.debug(`Full-text PDF extraction via GROBID: ${filePath}`);
-  const isAlive = await checkGrobidHealth(fullConfig.baseUrl);
+  const isAlive = await checkGrobidHealth(baseUrl);
   if (!isAlive) {
-    throw new GrobidUnavailableError(fullConfig.baseUrl, "Service not responding");
+    throw new GrobidUnavailableError(baseUrl, "Service not responding");
   }
   try {
     const fileBuffer = readFileSync(filePath);
@@ -66881,7 +66887,7 @@ async function extractFromPdfFullText(filePath, config = {}) {
     formData.append("input", new Blob([fileBuffer], { type: "application/pdf" }), fileName);
     formData.append("consolidateCitations", "1");
     formData.append("includeRawCitations", "1");
-    const response = await (0, import_undici.request)(`${fullConfig.baseUrl}/api/processFulltextDocument`, {
+    const response = await (0, import_undici.request)(`${baseUrl}/api/processFulltextDocument`, {
       method: "POST",
       body: formData,
       headersTimeout: fullConfig.timeout,

@@ -25,11 +25,19 @@ export interface PdfExtractionResult {
 }
 
 /**
+ * Normalize base URL by removing trailing slashes
+ */
+function normalizeBaseUrl(url: string): string {
+  return url.replace(/\/+$/, '');
+}
+
+/**
  * Check if GROBID service is available
  */
 export async function checkGrobidHealth(baseUrl: string): Promise<boolean> {
+  const normalizedUrl = normalizeBaseUrl(baseUrl);
   try {
-    const response = await request(`${baseUrl}/api/isalive`, {
+    const response = await request(`${normalizedUrl}/api/isalive`, {
       method: 'GET',
       headersTimeout: 5000,
       bodyTimeout: 5000,
@@ -49,15 +57,16 @@ export async function extractFromPdf(
   config: Partial<GrobidConfig> = {}
 ): Promise<PdfExtractionResult> {
   const fullConfig = { ...DEFAULT_GROBID_CONFIG, ...config };
+  const baseUrl = normalizeBaseUrl(fullConfig.baseUrl);
 
   log.debug(`Extracting from PDF via GROBID: ${filePath}`);
-  log.debug(`GROBID URL: ${fullConfig.baseUrl}`);
+  log.debug(`GROBID URL: ${baseUrl}`);
 
   // Check GROBID availability
-  const isAlive = await checkGrobidHealth(fullConfig.baseUrl);
+  const isAlive = await checkGrobidHealth(baseUrl);
 
   if (!isAlive) {
-    throw new GrobidUnavailableError(fullConfig.baseUrl, 'Service not responding');
+    throw new GrobidUnavailableError(baseUrl, 'Service not responding');
   }
 
   // Get file stats for logging
@@ -75,7 +84,7 @@ export async function extractFromPdf(
     formData.append('consolidateCitations', '1');
 
     // Call GROBID processReferences endpoint
-    const response = await request(`${fullConfig.baseUrl}/api/processReferences`, {
+    const response = await request(`${baseUrl}/api/processReferences`, {
       method: 'POST',
       body: formData,
       headersTimeout: fullConfig.timeout,
@@ -133,12 +142,13 @@ export async function extractFromPdfFullText(
   config: Partial<GrobidConfig> = {}
 ): Promise<PdfExtractionResult> {
   const fullConfig = { ...DEFAULT_GROBID_CONFIG, ...config };
+  const baseUrl = normalizeBaseUrl(fullConfig.baseUrl);
 
   log.debug(`Full-text PDF extraction via GROBID: ${filePath}`);
 
-  const isAlive = await checkGrobidHealth(fullConfig.baseUrl);
+  const isAlive = await checkGrobidHealth(baseUrl);
   if (!isAlive) {
-    throw new GrobidUnavailableError(fullConfig.baseUrl, 'Service not responding');
+    throw new GrobidUnavailableError(baseUrl, 'Service not responding');
   }
 
   try {
@@ -152,7 +162,7 @@ export async function extractFromPdfFullText(
     formData.append('includeRawCitations', '1');
 
     // Use processFulltextDocument for complete extraction
-    const response = await request(`${fullConfig.baseUrl}/api/processFulltextDocument`, {
+    const response = await request(`${baseUrl}/api/processFulltextDocument`, {
       method: 'POST',
       body: formData,
       headersTimeout: fullConfig.timeout,
