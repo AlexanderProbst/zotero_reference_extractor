@@ -184,12 +184,12 @@ export function OptionsForm({ disabled = false }: OptionsFormProps) {
           <div style={styles.inputGroup}>
             <label style={styles.label}>GROBID Server URL</label>
             <div style={styles.labelDescription}>
-              Required for PDF processing. Leave empty if you only have Word documents.
+              Required for PDF processing. Uses public server by default. For faster processing, run GROBID locally via Docker and use http://localhost:8070
             </div>
             <input
               type="text"
               style={styles.input}
-              placeholder="http://localhost:8070"
+              placeholder="https://kermitt2-grobid.hf.space"
               value={options.grobidUrl}
               onChange={(e) => setOption('grobidUrl', e.target.value)}
               disabled={disabled}

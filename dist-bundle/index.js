@@ -66838,6 +66838,13 @@ async function extractFromPdf(filePath, config = {}) {
       headersTimeout: fullConfig.timeout,
       bodyTimeout: fullConfig.timeout
     });
+    if (response.statusCode === 204) {
+      return {
+        refs: [],
+        warnings: [DiagnosticMessages.GROBID_EMPTY_RESULT(filePath)],
+        grobidAvailable: true
+      };
+    }
     if (response.statusCode !== 200) {
       const body = await response.body.text();
       throw new GrobidProcessingError(filePath, `HTTP ${response.statusCode}: ${body.substring(0, 200)}`);
@@ -66893,6 +66900,13 @@ async function extractFromPdfFullText(filePath, config = {}) {
       headersTimeout: fullConfig.timeout,
       bodyTimeout: fullConfig.timeout
     });
+    if (response.statusCode === 204) {
+      return {
+        refs: [],
+        warnings: [DiagnosticMessages.GROBID_EMPTY_RESULT(filePath)],
+        grobidAvailable: true
+      };
+    }
     if (response.statusCode !== 200) {
       const body = await response.body.text();
       throw new GrobidProcessingError(filePath, `HTTP ${response.statusCode}: ${body.substring(0, 200)}`);

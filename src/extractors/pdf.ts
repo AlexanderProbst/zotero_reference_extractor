@@ -91,6 +91,15 @@ export async function extractFromPdf(
       bodyTimeout: fullConfig.timeout,
     });
 
+    // 204 No Content means GROBID found no references
+    if (response.statusCode === 204) {
+      return {
+        refs: [],
+        warnings: [DiagnosticMessages.GROBID_EMPTY_RESULT(filePath)],
+        grobidAvailable: true,
+      };
+    }
+
     if (response.statusCode !== 200) {
       const body = await response.body.text();
       throw new GrobidProcessingError(filePath, `HTTP ${response.statusCode}: ${body.substring(0, 200)}`);
@@ -168,6 +177,15 @@ export async function extractFromPdfFullText(
       headersTimeout: fullConfig.timeout,
       bodyTimeout: fullConfig.timeout,
     });
+
+    // 204 No Content means GROBID found no references
+    if (response.statusCode === 204) {
+      return {
+        refs: [],
+        warnings: [DiagnosticMessages.GROBID_EMPTY_RESULT(filePath)],
+        grobidAvailable: true,
+      };
+    }
 
     if (response.statusCode !== 200) {
       const body = await response.body.text();

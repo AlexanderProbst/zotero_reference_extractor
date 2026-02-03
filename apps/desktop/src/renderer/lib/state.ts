@@ -86,7 +86,7 @@ interface AppState {
  */
 const defaultOptions: FormOptions = {
   format: 'csl',
-  grobidUrl: '',
+  grobidUrl: 'https://kermitt2-grobid.hf.space',
   minify: false,
   failOnEmpty: false,
   logLevel: 'info',
